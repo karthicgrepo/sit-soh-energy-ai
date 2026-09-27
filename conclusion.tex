@@ -16,9 +16,11 @@ prediction of a new cell from only its first 30 cycles with no target-cell
 training, a substantial accuracy gain once fine tuning begins, and calibrated
 uncertainty after a lightweight conformal correction. A ten-scenario
 cross-dataset validation shows that fine tuning is the dependable adaptation
-mechanism, that zero-shot fingerprint conditioning adds distinctive value when
-chemistry and corpus match, and that uncertainty stays calibrated only under
-chemistry alignment, a practical guideline for BMS transfer learning. We also
+mechanism, that fingerprint conditioning without target-cell fine-tuning adds
+distinctive value when chemistry and corpus match, and that uncertainty stays
+calibrated only when pretraining and deployment chemistries match, a
+chemistry-alignment effect that offers a practical guideline for BMS transfer
+learning. We also
 identify pretraining-run variance as a silent reproducibility hazard and
 neutralise it with a calibration-cell selection protocol, in a fully
 deterministic, byte-for-byte reproducible pipeline.

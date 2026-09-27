@@ -130,7 +130,7 @@ prediction, $T$ is the total cycle count of the target cell, and $p \in
 Dropout (rate 0.2) applied to the LSTM output during both training and
 inference provides uncertainty estimates via 50 stochastic forward passes.
 The 95\% prediction interval is $\hat{y} \pm 1.96\,\hat{\sigma}$ (an approximate
-MC-Dropout interval, not a calibrated confidence interval), where $\hat{\sigma}$
+MC-Dropout interval, not a calibrated prediction interval), where $\hat{\sigma}$
 is the empirical standard deviation across the 50 passes.
 
 \subsection{Pretraining-Run Variance and Checkpoint Selection}\label{sec:selection}
@@ -184,7 +184,7 @@ Table~\ref{tab:mechanism_contrast} makes this contrast explicit.
 \textit{Input view} & Time series $s_1 \to s_2 \to \cdots \to s_K$ & Static shape $\mathbf{s} \in \mathbb{R}^{30}$ \\
 \textit{Operation}  & Adjust LSTM weights $\theta$ to minimise $\mathcal{L}_{\mathrm{FT}}$ & Map shape to $(h_0, c_0)$ via CNN \\
 \textit{Output}     & Updated model weights & Cell-specific initial state \\
-\textit{Question answered} & What comes next in this sequence? & What type of degrader is this cell? \\
+\textit{Question answered} & What comes next in this sequence? & What is this cell's early-life degradation signature? \\
 \textit{Limitation} & Ambiguous for extreme cells in the first $p$\% & Requires a diverse pretraining corpus \\
 \bottomrule
 \end{tabularx}

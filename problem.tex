@@ -152,7 +152,9 @@ early-life data can identify the problem cells in advance.
 A cubic polynomial fit to each G1 cell's SOH trajectory achieves a mean
 $R^2$ of 0.964 (minimum: 0.908 for cell 001-6), confirming that individual
 trajectories are highly predictable given sufficient training data.
-The irreducible within-cell variance fraction is 3.6\%.
+On average 3.6\% of the trajectory variation is not captured by this
+particular cubic fit; this residual reflects the choice of fit and is not
+an irreducible noise floor.
 The challenge is therefore not within-cell prediction but
 \textit{between-cell diversity}: knowing a cell's past trajectory does not
 reveal where it sits in the manufacturing distribution.

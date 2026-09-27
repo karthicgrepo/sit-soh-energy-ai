@@ -1,21 +1,36 @@
-Batteries in electric vehicles and grid storage are large-format cells, yet almost
-all machine-learning work on battery health is built on small cylindrical cells
-cycled in the laboratory, so their transfer to large-format cells is untested. To
-close this gap, we release an 18-month dataset of 20 large-format LiFePO$_4$
-prismatic cells (50\,Ah) cycled under three operating conditions. The data expose
-the core difficulty: manufacturing variability, not temperature or model choice,
-dominates how these cells age. Ten nominally identical cells reach final SOH values
-that differ by 13.2$\times$ (7.7$\times$ even at the same cycle count), an order of
-magnitude wider than any large-format LFP dataset we are aware of; across six
-deep-learning models, the individual cell explains 25\% to 58\% of the prediction
-error, the model only about 15\%. Can a new cell's health be predicted early,
-without months of its own data? Our hybrid model, pretrained on many past cells,
-reads a new cell's first 30 cycles through a fingerprint encoder and predicts its
-SOH trajectory with no cell-specific training (RMSE 0.025, 38\% better than
-training from scratch); fine-tuning raises this to 53.5\% over scratch on all 17
-test cells, especially the fast-failing cells that drive warranty risk. It reports
-calibrated confidence intervals (94\% coverage, but only
-when training and deployment chemistries match), flags defective cells about 50
-cycles early (0.78 AUC), and forecasts remaining life to a median of 49 cycles.
-Because one-step accuracy saturates, even a linear baseline matches the best, we
-judge models by these deployment capabilities and release a reproducible pipeline.
+% Framing follows the reviewer's saturation-forward structure (C1): lead with the
+% saturation finding and cell-to-cell variation, then position the hybrid as a
+% deployment capability set, not a one-step winner (C24). Terminology: cell-to-cell
+% variability (C2), fingerprint-conditioned transfer (C6), improvement scoped to
+% "over scratch" (C23). NUMBERS TO RECONCILE after the C10 cascade: the 38\% and
+% 53.5\% reductions come from the ablation and will be re-verified against the new
+% checkpoint; AUC 0.78 (screening) and 49-cycle RUL are independent of the C10 fix.
+Accurate state-of-health (SOH) forecasting is important for battery management, yet
+most machine-learning studies are evaluated on small laboratory cells with rolling
+one-step-ahead prediction, where the model is continuously supplied with the latest
+observed SOH. This study examines whether such benchmarks reflect the challenges of
+large-format battery deployment. We analyse an 18-month dataset of 20 large-format
+50\,Ah LiFePO$_4$ prismatic cells tested under three operating conditions, together
+with several external battery datasets. Substantial cell-to-cell variation is
+observed even among nominally identical cells, while a comparison of six
+deep-learning models shows that conventional one-step forecasting is close to
+saturation: a simple linear autoregressive model performs as well as or better than
+the deep models, and cell identity explains substantially more prediction-error
+variance than model choice.
+
+These findings motivate a deployment-oriented framework that targets capabilities
+beyond one-step accuracy. The proposed hybrid model combines LFP pretraining, an
+early-life fingerprint encoder over the first 30 cycles, target-cell fine-tuning, and
+uncertainty estimation. Without target-cell fine-tuning, fingerprint-conditioned
+transfer reduces RMSE by 38\% relative to training from scratch, and subsequent
+fine-tuning increases the average reduction to 53.5\% over the same scratch baseline.
+The framework is further evaluated for uncertainty estimation, early identification
+of fast-degrading cells, cross-dataset transfer, and remaining-useful-life
+forecasting. Early-life voltage-curve features flag cells at risk of premature
+degradation with an AUC of 0.78, and the RUL model reaches a median error of 49
+cycles at the midlife forecasting point. The proposed hybrid is not intended to win
+the already-saturated one-step benchmark; its value is transfer to a new cell,
+uncertainty estimation, early screening, and long-term forecasting. Overall, the main
+challenge in large-format battery prognostics is not further reducing already-small
+one-step errors, but developing models that adapt across cells, quantify uncertainty,
+identify abnormal degradation early, and provide reliable long-term forecasts.

@@ -53,11 +53,11 @@ under three operating conditions. As the baseline we use our previously publishe
 DE-LSTM~\cite{ponnambalam2026delstm}, a differential-evolution-optimised LSTM with
 leading accuracy on the NASA 18650 benchmark, alongside five further deep
 baselines and two trivial baselines. Section~\ref{sec:problem} quantifies how
-severely the first two gaps, manufacturing variability and benchmark saturation,
+severely the first two gaps, cell-to-cell variability and benchmark saturation,
 manifest on these cells; Sections~\ref{sec:method} and~\ref{sec:results} present
 and validate the proposed hybrid, whose value lies in deployment capabilities
 rather than one-step rank; and a cross-dataset evaluation establishes the
-chemistry alignment principle, that the model's uncertainty estimates stay
+chemistry-alignment effect, in which the model's uncertainty estimates stay
 calibrated only when pretraining and deployment chemistries match.
 
 \subsection{Contributions}
