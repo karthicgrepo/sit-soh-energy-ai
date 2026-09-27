@@ -1,0 +1,133 @@
+%% Energy and AI (Elsevier) submission
+%% Migrated from the WileyNJDv5 reviewed version; content unchanged at migration time.
+\documentclass[review,times]{elsarticle}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{url}
+\usepackage{siunitx}
+\usepackage{xcolor}
+
+\setcounter{secnumdepth}{3}
+\graphicspath{{figures/}}
+
+\journal{Energy and AI}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Deployment-Oriented Health Prediction for Large-Format LiFePO$_4$ Cells:
+       Manufacturing Variability, Transfer, and Calibrated Uncertainty%
+       \tnoteref{abbr}}
+
+\tnotetext[abbr]{\textbf{Abbreviations:}
+AUC, Area Under the ROC Curve;
+BMS, Battery Management System;
+CNN, Convolutional Neural Network;
+DE, Differential Evolution;
+EOL, End of Life;
+EV, Electric Vehicle;
+FP, Fingerprint;
+FT, Fine Tuning;
+LFP, Lithium Iron Phosphate;
+LCO, Lithium Cobalt Oxide;
+LOOCV, Leave-One-Out Cross-Validation;
+LSTM, Long Short-Term Memory;
+MAE, Mean Absolute Error;
+MC, Monte Carlo;
+NCA, Nickel Cobalt Aluminium;
+NMC, Nickel Manganese Cobalt;
+PI, Prediction Interval;
+PT, Pretraining;
+RMSE, Root Mean Square Error;
+RUL, Remaining Useful Life;
+SIT, Singapore Institute of Technology;
+SOH, State of Health;
+ZS, Zero-Shot.}
+
+\author[nu]{Karthickumar Ponnambalam\corref{cor1}}
+\ead{K.Ponnambalam2@newcastle.ac.uk}
+\author[sit]{Sivaneasan Balakrishnan}
+\author[nu]{Anurag Sharma}
+\author[nu]{Sze Sing Lee}
+
+\affiliation[nu]{organization={Newcastle University}, country={Singapore}}
+\affiliation[sit]{organization={Singapore Institute of Technology}, country={Singapore}}
+
+\cortext[cor1]{Corresponding author.}
+
+\begin{abstract}
+\input{abstract}
+\end{abstract}
+
+\begin{keyword}
+battery state of health \sep remaining useful life \sep LiFePO$_4$ \sep
+transfer learning \sep manufacturing variability \sep uncertainty quantification \sep
+large-format cells
+\end{keyword}
+
+\end{frontmatter}
+
+\section{Introduction}\label{sec:intro}
+\input{introduction}
+
+\section{Literature Review}\label{sec:literature}
+\input{literature}
+
+\section{Research Gap and Contributions}\label{sec:gap}
+\input{gap_contributions}
+
+\section{Dataset and Experimental Methodology}\label{sec:methodology}
+\input{setup}
+
+\section{Problem Characterisation: Limitations of Standard Methods}\label{sec:problem}
+\input{problem}
+
+\section{Proposed Method: Hybrid Model}\label{sec:method}
+\input{method}
+
+\section{Hybrid Model Evaluation}\label{sec:results}
+\input{evaluation}
+
+\section{Early Detection of Manufacturing-Defective Cells}\label{sec:screening}
+\input{screening}
+
+\section{Remaining Useful Life Forecasting}\label{sec:rul}
+\input{rul_forecasting}
+
+\section{Discussion}\label{sec:discussion}
+\input{discussion}
+
+\section{Conclusion}\label{sec:conclusion}
+\input{conclusion}
+
+\section*{Acknowledgements}
+The authors thank the Singapore Institute of Technology Battery Laboratory
+for providing the experimental infrastructure and cycling data used in this study.
+The MIT dataset used for pretraining was made available by Severson et al.\
+under open-access terms~\cite{severson2019data}.
+
+\section*{Data and Code Availability Statement}
+The SIT large-format LiFePO$_4$ dataset analysed in this study is openly
+available at \url{https://doi.org/10.25447/sit.32101523}~\cite{ponnambalam2026sitdata}.
+The MIT/Severson fast-charging dataset is openly available from Severson et
+al.~\cite{severson2019data}, and the NASA dataset from the NASA Prognostics
+Center of Excellence~\cite{saha2007battery}.
+This study is designed to be fully reproducible. All code, the complete
+experimental pipeline, and the selected pretrained checkpoint that generate every
+table and figure in this paper are available at
+\url{https://github.com/karthicgrepo/battery-soh-prediction}.
+Every experiment runs deterministically, using TensorFlow op-determinism with full
+float32 precision and complete seeding of the Python, NumPy, and TensorFlow random
+number generators, so each reported value reproduces bit-for-bit on the same
+hardware and software stack.
+
+\bibliographystyle{elsarticle-num}
+\bibliography{references}
+
+\end{document}

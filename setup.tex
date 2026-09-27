@@ -1,0 +1,224 @@
+This section describes the datasets used in this study, the DE-LSTM baseline
+against which the hybrid is developed, and the evaluation protocol shared by all
+experiments.
+
+\subsection{Datasets}\label{sec:datasets}
+
+\subsubsection{SIT LiFePO$_4$ Dataset (Primary)}
+The SIT dataset~\cite{ponnambalam2026sitdata} comprises 20 commercial
+LiFePO$_4$ prismatic cells (Narada Power Source, 50\,Ah nominal, 3.2\,V)
+cycled in the Singapore Institute of Technology Battery Laboratory over
+18 months.
+Cells are organised into three groups differing in temperature and C-rate:
+\begin{itemize}
+  \item \textbf{G1} (10 cells, IDs 001-1 to 001-8, 101-1, 101-3):
+        ambient temperature (${\approx}25$\,\textcelsius), 1\,C charge/discharge,
+        deep cycling. All cells share nominally identical specifications
+        and protocol, so observed differences are most plausibly dominated by
+        manufacturing tolerances, although cycler-channel differences, contact
+        resistance, minor temperature variation, testing interruptions and
+        production batch may also contribute.
+  \item \textbf{G2} (4 cells, IDs 002-1 to 002-4):
+        40\,\textcelsius\ thermal chamber, 1\,C rate.
+  \item \textbf{G3} (6 cells, IDs 002-5, 002-7, 003-1, 003-3, 003-5, 003-7):
+        40\,\textcelsius\ thermal chamber, 2\,C rate.
+\end{itemize}
+SOH is computed from discharge capacity as
+$\text{SOH}(k) = Q_k / Q_1$,
+where $Q_k$ is discharge capacity at cycle $k$ and $Q_1$ is the first-cycle
+capacity.
+Table~\ref{tab:sit_cells} summarises cycle counts and final SOH for all
+20 cells, where SOH$_\text{end}$ is the final-cycle SOH.
+Cell 003-5 records SOH$>$1, a capacity-recovery artefact arising at low C-rate
+after elevated-temperature cycling; it is retained in the analysis but treated
+with caution.
+
+\begin{table}[htbp]
+\caption{SIT cell inventory across three operating conditions.}
+\label{tab:sit_cells}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{llrrr}
+\toprule
+Group & Cell & Cycles & SOH$_\text{end}$ & Condition \\
+\midrule
+G1 & 001-1 & 876  & 0.767 & \multirow{10}{*}{25\,\textcelsius, 1\,C} \\
+   & 001-2 & 764  & 0.878 & \\
+   & 001-3 & 788  & 0.493 & \\
+   & 001-4 & 878  & 0.709 & \\
+   & 001-5 & 684  & 0.885 & \\
+   & 001-6 & 876  & 0.854 & \\
+   & 001-7 & 876  & 0.885 & \\
+   & 001-8 & 764  & 0.067 & \\
+   & 101-1 & 864  & 0.696 & \\
+   & 101-3 & 697  & 0.118 & \\
+\midrule
+G2 & 002-1 & 564  & 0.924 & \multirow{4}{*}{40\,\textcelsius, 1\,C} \\
+   & 002-2 & 572  & 0.888 & \\
+   & 002-3 & 561  & 0.915 & \\
+   & 002-4 & 560  & 0.660 & \\
+\midrule
+G3 & 002-5 & 689  & 0.913 & \multirow{6}{*}{40\,\textcelsius, 2\,C} \\
+   & 002-7 & 695  & 0.564 & \\
+   & 003-1 & 603  & 0.461 & \\
+   & 003-3 & 693  & 0.559 & \\
+   & 003-5 & 567  & 1.075$^\dagger$ & \\
+   & 003-7 & 694  & 0.587 & \\
+\bottomrule
+\multicolumn{5}{l}{$\dagger$ Capacity recovery artefact; included in analysis with caution.}
+\end{tabular}%
+}
+\end{table}
+
+G1 provides the manufacturing variability experiment (Section~\ref{sec:variability});
+G1/G2/G3 provide the cross-condition transfer experiment
+(Section~\ref{sec:brittleness}).
+
+\subsubsection{MIT LFP Dataset (Pretraining)}
+The Severson et al.~\cite{severson2019data} dataset provides 124 LFP/graphite
+18650 cells (1.1\,Ah) cycled at Stanford University and Toyota Research
+Institute at various C-rates and charging protocols.
+Of these, 49 cells have complete cycle-level capacity data in our processing;
+the \emph{pretraining corpus} comprises the 40 batch-1 cells
+(batch1\_cell000 to 039).
+This choice is empirical: in a corpus-sensitivity test, extending the corpus
+with the nine remaining complete-data cells (including the two batch-3 cells
+with $\leq$9\% total fade) collapsed the next-cycle pretraining objective
+toward a trivial persistence solution (validation MSE
+$3.4\times10^{-3}\rightarrow1\times10^{-5}$) and degraded downstream transfer;
+the 40-cell corpus is therefore retained, and the full corpus-sensitivity
+results are provided in the released repository.
+We emphasise that this is a property of the pretraining objective, not a
+fragility of the deployed model: the hybrid is evaluated on, and performs well
+on, slowly fading target cells (e.g.\ the G2 cells with final SOH
+${\approx}0.9$).
+The early-life correlation analysis of Table~\ref{tab:fingerprint} uses the
+47 genuine degraders (final SOH $<1$) among all 49 complete-data cells,
+excluding the two capacity-recovery artefacts.
+Pretraining on chemistry matched LFP cells is a deliberate design choice
+motivated by the chemistry alignment hypothesis evaluated in
+Section~\ref{sec:discussion}.
+
+\subsection{Baseline: DE-LSTM}\label{sec:delstm}
+
+DE-LSTM~\cite{ponnambalam2026delstm} is the strongest model from our prior work
+and serves as the baseline against which the hybrid is developed.
+It is a plain LSTM network whose
+hyperparameters (hidden units $H$, look-back window $W$,
+learning rate $\eta$) are optimised by differential
+evolution (DE)~\cite{storn1997differential} using
+2-fold walk-forward cross-validation as the fitness function;
+the batch size is set deterministically to $\max(32, H)$ rather than searched.
+The architecture is:
+\begin{equation}
+  \hat{y}_t = \mathbf{W}_o\, h_t + b_o,\quad
+  h_t, c_t = \mathrm{LSTM}(x_{t-W:t},\, h_{t-1}, c_{t-1})
+\end{equation}
+where $x_{t-W:t}$ is the SOH look-back window of length $W$, $h_t$ and $c_t$ are
+the LSTM hidden and cell states at cycle $t$, $\mathbf{W}_o$ and $b_o$ are the
+output-layer weight matrix and bias, and $\hat{y}_t$ is the predicted next-cycle
+SOH.
+
+For the SIT baseline evaluation (Section~\ref{sec:baseline}), DE is run
+independently for each cell and each training split, with the search space
+$H \in \{8, 16, 32, 64, 128, 256\}$, $W \in [3, 30]$, $\eta \in [10^{-4}, 0.05]$.
+The DE search uses a population of 3 per parameter and a maximum of
+8 generations (\texttt{polish=False}, \texttt{tol}~$=10^{-4}$), on the order of
+80 candidate evaluations per cell and split, and is itself run under a single
+fixed seed.
+The selected hyperparameters are then re-evaluated under two independent random
+seeds, and the mean RMSE is reported.
+
+\subsection{Evaluation Protocol}\label{sec:eval}
+
+All experiments use three training splits: 30\%, 50\%, and 70\% of each
+cell's SOH trajectory, with the remainder held out for evaluation.
+Because each split is defined as a fraction of a cell's already-completed
+trajectory, these splits are retrospective (they presuppose the cell's total
+lifetime). Prediction is performed in a rolling one-step-ahead manner: at each
+held-out cycle the model receives the \emph{observed} previous $W$ SOH values and
+predicts the next one, and predicted values are never fed back as inputs (i.e.,
+we report one-step-ahead prediction, not recursive multi-step forecasting).
+Hybrid-model evaluations are averaged over five random seeds per cell;
+single-cell baseline methods (Simple, PA-, GA-, DE-LSTM, TCN, Transformer)
+are averaged over two seeds after their hyperparameter search, which itself
+runs under a single fixed seed.
+Summary tables report the mean RMSE with its
+standard deviation across the cells in each group.
+Improvement over scratch LSTM is computed per cell and then averaged, so a
+reported improvement is the mean of the per-cell percentage RMSE reductions rather
+than the percentage change between the group-mean RMSEs.
+
+\subsubsection{Data Partitioning and Leakage}
+Within each target cell the training and evaluation partitions are contiguous in
+cycle order: training windows are drawn from the first $p\%$ of the trajectory and
+evaluation windows from the remainder, so no held-out SOH value is ever used as a
+training target. The first evaluation window is seeded with the last $W$
+\emph{observed} training cycles as its input; this is inherent to one-step-ahead
+prediction and exposes no held-out target. For pretraining, the look-back windows
+of all corpus cells are pooled in cell order and the final 10\% of the pooled array
+is held out for early stopping. Because the pooled array is not shuffled before
+this split, the validation slice comprises whole cells except for the single cell
+straddling the boundary, which is consequently the only cell able to contribute
+(mutually overlapping) windows to both partitions. Finally, since a cell of length
+$T$ yields $T-W$ windows, cells with longer trajectories contribute proportionally
+more pretraining samples: the pooled corpus is sample-weighted by trajectory
+length rather than balanced per cell.
+
+\subsubsection{Calibration Cells and Test Cells}
+Three SIT cells, the numerically first cell of each condition group
+(001-1, 002-1, 002-5), designated \emph{a priori}, are reserved as
+\emph{calibration cells} for pretraining-checkpoint selection
+(Section~\ref{sec:selection}).
+All reported SIT results are computed on the remaining \textbf{17 test cells};
+the calibration cells never contribute to any reported metric.
+
+\subsubsection{Reproducibility}
+All experiments run with deterministic GPU kernels
+(TensorFlow op-determinism, full float32) and complete seeding of the Python,
+NumPy, and TensorFlow generators, so every reported number is bit-for-bit
+reproducible on the same hardware and software stack.
+The code, the full pipeline, and the selected pretrained checkpoint are
+permanently archived on Zenodo~\cite{ponnambalam2026code}.
+Statistical significance of pairwise comparisons uses the Wilcoxon
+signed-rank test~\cite{wilcoxon1945individual} at $\alpha = 0.05$.
+This non-parametric test is preferred over a paired $t$-test because
+per-cell RMSE distributions are skewed by outlier cells (e.g., catastrophic
+degraders such as cell 001-8), and the Wilcoxon test does not assume normality.
+For the hybrid model, empirical 95\% prediction-interval (PI) coverage (fraction
+of test points within the predicted interval) and mean PI width are additionally
+reported. These MC-Dropout intervals are approximate predictive intervals, not
+calibrated confidence intervals.
+
+\subsubsection{Model Configurations and Tuning Budget}
+Table~\ref{tab:hyperparams} reports every model's architecture, tuning budget, and
+training configuration exactly as run. The three search-based LSTMs (PA-, GA- and
+DE-LSTM) each receive a per-cell, per-split hyperparameter search of comparable
+size (of the order of 80 candidate evaluations), whereas the Simple LSTM, the TCN
+and the Transformer share a common fixed configuration. We note this asymmetry
+explicitly: the non-recurrent baselines are not hyperparameter-optimised, so their
+weaker performance should be read as evidence that a richer backbone is not what
+these data reward rather than as a tuned upper bound. The proposed hybrid likewise
+receives \emph{no} per-cell search, and so competes against the searched LSTM
+baselines from a single fixed configuration.
+
+\begin{table*}[!t]
+\caption{Model configurations and training budgets, as run (per cell and split).}
+\label{tab:hyperparams}
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{l X l X}
+\toprule
+Model & Architecture & Tuning budget & Training configuration \\
+\midrule
+Simple LSTM & LSTM(64) $\to$ Dense(1) & none (fixed) & $W{=}20$, $\eta{=}10^{-2}$, batch 64, 200 epochs, early stop patience 10 \\
+PA-LSTM & LSTM $\to$ attention $\to$ pooling $\to$ Dense(1) & PSO, ${\approx}80$ evals & searched: $H\in\{8\ldots256\}$, $W\in[3,30]$, $\eta\in[10^{-4},5{\times}10^{-2}]$; batch $\max(32,H)$, 200 epochs, patience 10 \\
+GA-LSTM & LSTM $\to$ Dense(1) & GA, $9{\times}9$ evals & searched, as PA-LSTM \\
+DE-LSTM & LSTM $\to$ Dense(1) & DE, ${\approx}80$ evals & searched, as PA-LSTM \\
+TCN & 3 residual dilated causal conv blocks (64 filters, $k{=}3$, dilations $1,2,4$) & none (fixed) & $W{=}20$, $\eta{=}10^{-2}$, batch 64, 200 epochs, patience 10 \\
+Transformer & 1 encoder block ($d_{\mathrm{model}}{=}64$, 4 heads, feed-forward 128) & none (fixed) & $W{=}20$, $\eta{=}10^{-3}$, batch 64, 200 epochs, patience 10 \\
+\midrule
+Scratch LSTM & LSTM(64) $\to$ Dropout(0.2) $\to$ Dense(1) & none (fixed) & $W{=}20$, $\eta{=}10^{-3}$, 100 epochs, patience 10 \\
+Hybrid (ours) & CNN fingerprint (Conv1D 32 and 16, $k{=}3$, global average pooling, Dense 16) $\to$ LSTM(64) initialised with $(h_0,c_0)$ $\to$ MC-Dropout(0.2) $\to$ Dense(1); 21\,089 parameters & none (fixed) & pretrain: $\eta{=}10^{-3}$, batch 64, 100 epochs, patience 12; fine tune: $\eta{=}5{\times}10^{-4}$, 50 epochs, patience 8; 50 MC-Dropout passes \\
+\bottomrule
+\end{tabularx}
+\end{table*}

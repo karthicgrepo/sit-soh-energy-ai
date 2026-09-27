@@ -1,0 +1,135 @@
+This section sets out the gaps left open by prior work and summarises how this
+study addresses them.
+
+\subsection{Research Gap}
+
+Despite substantial progress in data-driven SOH prediction, three critical gaps remain unaddressed in the existing literature:
+
+\begin{enumerate}
+  \item \textbf{Manufacturing variability is not modelled.}
+        Published benchmarks typically use hand-picked cells with moderate,
+        smooth degradation trajectories.
+        Cell-to-cell manufacturing variance, which can produce 10$\times$
+        differences in degradation rate under identical conditions, is
+        systematically understudied.
+        Most transfer and fine tuning methods adapt to a target cell either by
+        aligning feature distributions across batteries at the population
+        level~\cite{ye2021state} or by fine tuning a shared model on the target
+        cell's own recent data~\cite{ma2022real}.
+        Neither extracts an explicit early-life shape signature that locates a
+        cell within the manufacturing distribution of the pretrained population
+        before adaptation, so a cell whose early trajectory is ambiguous
+        (Section~\ref{sec:variability}) cannot be distinguished from an average
+        cell.
+
+  \item \textbf{The standard benchmark protocol has never been validated.}
+        Nearly all published comparisons, including our own prior
+        work~\cite{ponnambalam2024battery,ponnambalam2026delstm}, rank methods
+        by one-step-ahead RMSE on small cylindrical 18650 cells (with NASA cells
+        B05, B06, B07, and B18 the de facto standard since
+        2007~\cite{saha2007battery,xu2025review}).
+        Whether this protocol can actually distinguish methods, that is,
+        whether the reported differences exceed trivial-baseline performance
+        and the run-to-run variance of training itself, has never been
+        tested, and neither has its behaviour on large-format
+        ($\geq$10\,Ah) cells under industrially representative conditions.
+
+  \item \textbf{Uncertainty calibration is chemistry-dependent.}
+        Bayesian approximations and conformal prediction, including MC-Dropout
+        and Bayes by Backprop (BBB), provide well-studied uncertainty
+        estimates~\cite{gal2016dropout,angelopoulos2021gentle} and have been
+        applied to battery SOH~\cite{ke2024bayesian}, but typically within a
+        single chemistry.
+        Whether these estimates remain calibrated under a chemistry mismatch
+        between pretraining and deployment data has not been investigated, a
+        critical gap for practical BMS deployment where pretraining data may be
+        available only for a different battery chemistry.
+\end{enumerate}
+
+This study addresses these three gaps using the SIT
+dataset~\cite{ponnambalam2026sitdata}, our previously published large-format
+campaign of 20 LiFePO$_4$ prismatic cells (50\,Ah, 3.2\,V) cycled over 18 months
+under three operating conditions. As the baseline we use our previously published
+DE-LSTM~\cite{ponnambalam2026delstm}, a differential-evolution-optimised LSTM with
+leading accuracy on the NASA 18650 benchmark, alongside five further deep
+baselines and two trivial baselines. Section~\ref{sec:problem} quantifies how
+severely the first two gaps, manufacturing variability and benchmark saturation,
+manifest on these cells; Sections~\ref{sec:method} and~\ref{sec:results} present
+and validate the proposed hybrid, whose value lies in deployment capabilities
+rather than one-step rank; and a cross-dataset evaluation establishes the
+chemistry alignment principle, that the model's uncertainty estimates stay
+calibrated only when pretraining and deployment chemistries match.
+
+\subsection{Contributions}
+This paper makes the following key contributions:
+\begin{enumerate}
+  \item \textbf{Large-format benchmark with trivial-baseline control}: the
+        first systematic evaluation of six deep single-cell predictors,
+        including our prior DE-LSTM, on 50\,Ah LiFePO$_4$ prismatic cells,
+        together with linear-autoregressive and curve-fitting controls that
+        expose the saturation of the one-step protocol
+        (Section~\ref{sec:baseline}).
+
+  \item \textbf{Manufacturing variability quantification}: Across ten nominally
+        identical G1 cells, we show that although each cell's own degradation
+        trajectory is highly predictable, the cells differ so much from one
+        another that this manufacturing spread, not the algorithm, sets the
+        error floor.
+        A variance decomposition across six predictors attributes 25\% to 58\%
+        of error variance to the cell and only ${\sim}$15\% to the method,
+        and cross-cell pooling exhibits a two-sided failure mode: it rescues
+        the fast-degrading cells but worsens others by up to 2$\times$
+        (Section~\ref{sec:variability}).
+
+  \item \textbf{Benchmark-saturation finding}: We show that the field's
+        standard one-step-ahead protocol cannot rank methods on data-rich
+        large-format cells: a linear autoregressor attains the lowest error of
+        all evaluated models, inter-method differences fall within
+        training-run variance, and apparent cross-condition effects are
+        dominated by the quality of individual training runs
+        (Sections~\ref{sec:baseline} and~\ref{sec:brittleness}).
+
+  \item \textbf{Hybrid transfer model with ablation}: We propose a three-phase
+        model (MIT LFP pretraining, convolutional fingerprint encoder,
+        MC-Dropout uncertainty) and conduct a full ablation study isolating
+        each component's contribution.
+        The hybrid predicts new cells zero-shot from 30 cycles with no
+        target-cell training (38\% better than scratch) and achieves a 53.5\%
+        mean RMSE improvement over scratch with fine tuning, on all 17 of 17
+        test cells; it is the only evaluated method that quantifies
+        uncertainty, reaching 94\% empirical coverage after split-conformal
+        correction (Section~\ref{sec:solution}).
+        We additionally characterise pretraining-run variance, show that
+        source-domain criteria cannot detect poorly transferring pretraining
+        runs, and introduce a calibration-cell checkpoint-selection protocol
+        that makes the pipeline reliably reproducible
+        (Section~\ref{sec:selection}).
+
+  \item \textbf{Chemistry-alignment principle with multi-dataset validation}:
+        We demonstrate that MC-Dropout uncertainty calibration transfers between
+        datasets only when pretraining and deployment chemistries are matched
+        (LFP$\rightarrow$LFP: 82\% coverage; LFP$\rightarrow$LCO: 43\%
+        coverage).
+        A ten-scenario cross-dataset experiment spanning three LFP datasets
+        (MIT, SIT, LISHEN 40\,Ah) and one LCO dataset confirms this principle
+        and shows that fine tuning is the dependable adaptation mechanism
+        across chemistries, while zero-shot fingerprint conditioning provides
+        its distinctive value before any adaptation is possible, yielding a
+        practical guideline for transfer learning in BMS applications
+        (Sections~\ref{sec:cross_dataset} and~\ref{sec:discussion}).
+
+  \item \textbf{Early screen for manufacturing-defective cells}: We show that
+        no scalar health indicator separates the defective cells within a group,
+        yet the early-cycle discharge voltage-curve descriptor $\Delta Q(V)$
+        detects eventual early death at an AUC of 0.78 on the SIT cells,
+        reproduced on the MIT corpus, about 50 cycles before the capacity
+        trajectory reveals the defect (Section~\ref{sec:screening}).
+
+  \item \textbf{Full-coverage probabilistic RUL forecasting}: We extend the
+        hybrid from one-step SOH to remaining-useful-life forecasting with a
+        direct multi-horizon decoder and a 155-cell multi-dataset LFP foundation
+        corpus, forecasting every cell that reaches end of life, including the
+        catastrophic cells that recursive baselines abstain on, at a median
+        error of 49 cycles at the midlife anchor with conformally calibrated
+        intervals (Section~\ref{sec:rul}).
+\end{enumerate}

@@ -1,0 +1,175 @@
+This section interprets the results for deployment, covering manufacturing
+variability, the saturation of the standard one-step benchmark, the chemistry
+alignment principle, the complementary roles of the early-life fingerprint and
+fine tuning, pretraining-run variance and reproducibility, and the model's
+computational footprint, before setting out the study's limitations.
+
+\subsection{Manufacturing Variability as the Primary Bottleneck}
+
+The central lesson of the SIT data is that prediction error lives in the cell,
+not the algorithm: within-cell trajectories are highly predictable, yet
+nominally identical cells diverge so widely (Section~\ref{sec:variability}) that
+cell identity, not the choice of method, sets the error floor
+(Section~\ref{sec:baseline}). The field's effort, dominated by architectural
+innovation, is thus allocated against where the variance actually lies. For a
+BMS engineer the practical consequence is an asymmetric risk: same-cell models
+underestimate catastrophic degraders, while naive cross-cell pooling degrades
+ordinary robust cells; the fingerprint encoder is our response, conditioning
+each prediction on the cell's own early-life behaviour before any fine tuning
+begins. The same variability also explains why benchmarks built on hand-picked,
+smoothly degrading cells are systematically optimistic, and why a dataset that
+spans catastrophic to exceptionally robust cells is a more honest proving
+ground.
+
+\subsection{Benchmark Saturation: A Floor Check, Not a Leaderboard}
+
+The most consequential methodological finding is that rolling one-step-ahead
+prediction is saturated on these smooth trajectories: a trivial 20-cycle linear
+autoregressor matches or beats every deep model, and inter-method gaps fall
+within the run-to-run variance of training itself (Section~\ref{sec:baseline}).
+The obvious harder alternative, recursive multi-step rollout, discriminates no
+better here, since feeding predictions back accumulates error until every model
+is unusable. One-step RMSE is therefore a floor check, not a leaderboard. We
+accordingly recommend that studies on smooth-degradation data (i)~always include
+a trivial persistence or linear baseline, (ii)~report multi-run variance under
+deterministic seeding, and (iii)~rank methods on the capabilities the
+application needs, early-life prediction, calibrated uncertainty, and
+cross-chemistry robustness, rather than on fourth-decimal RMSE. The same
+discipline applies across operating conditions: apparent temperature-transfer
+effects here reflect test-set difficulty rather than easy transfer, and must be
+controlled for (Section~\ref{sec:brittleness}).
+
+\subsection{The Chemistry Alignment Principle}
+
+Uncertainty calibration transferred only when the pretraining and deployment
+chemistries matched (Section~\ref{sec:cross_dataset}). The mechanism is simple:
+the model's learned sense of how uncertain to be is tuned to LFP degradation
+dynamics, so its intervals are appropriately scaled on LFP cells but
+overconfident on the faster-fading LCO cells. The practical rule is to pretrain
+on chemistry-matched data. Because even matched intervals under-cover, we regard
+split-conformal correction (or temperature scaling~\cite{guo2017calibration})
+as mandatory before prediction intervals are trusted in a BMS, whether or not
+the chemistry is matched.
+
+\subsection{Fingerprint and Fine Tuning: Distinct Roles, Not Rivals}
+
+The ablation and its shuffled-fingerprint control together show that the
+fingerprint's role is to anchor the LSTM in the pretrained population's regime
+rather than to identify the individual cell, a weaker mechanism than we first
+hypothesised but a more robust one, since it needs only a representative
+pretraining population, not 30 cycles rich enough to tell cells apart. The
+cross-dataset experiment then separates the two levers by role: fine tuning is
+the \emph{dependable} mechanism, positive in every transfer scenario including
+each cross-chemistry pair, whereas zero-shot fingerprint conditioning is the
+\emph{early-life} mechanism, the only option before any history exists and most
+reliable exactly when chemistry and corpus breadth match, the setting a
+manufacturer qualifying a product line can guarantee. For a BMS this means a
+chemistry-matched model is useful from the first cycles at no adaptation cost,
+with fine tuning taking over as history accumulates and becoming indispensable
+once chemistries differ.
+
+\subsection{Pretraining-Run Variance and Reproducibility}
+
+A surprising hazard is how strongly transfer quality depends on the pretraining
+draw, and that no source-domain metric we tested identified the poorly
+transferring runs (Section~\ref{sec:selection}); one-step holdout RMSE was in
+fact inverted, rewarding collapsed persistence-like solutions. Any transfer
+pipeline whose pretraining objective admits a trivial shortcut may share this
+silent failure mode, which single-run studies cannot detect; our
+calibration-cell protocol is a deployable safeguard, and we recommend that
+battery-prognostics transfer studies report multi-run variance. The companion
+discipline is determinism: every number in this paper reproduces byte-for-byte
+from a fresh clone (Section~\ref{sec:repro}), a practice we adopted after finding
+that library-default seeding alone could alter experimental conclusions.
+
+\subsection{Computational Footprint}
+
+A recurring justification for this work is BMS deployment, which constrains model
+size and inference cost, so we report both.
+The hybrid is lightweight: 21\,089 parameters, approximately 82\,KB in float32
+and 41\,KB in float16, small enough to reside in the memory of an embedded BMS
+microcontroller.
+A point SOH estimate is a single forward pass; the 50-pass MC-Dropout
+uncertainty estimate, when the passes are evaluated as one batched forward
+(replicating the input across the batch dimension), completes in about 4\,ms on
+both a desktop CPU and the RTX 2080 Ti.
+Because SOH is updated once per charge-discharge cycle (tens of minutes to
+hours), this leaves a latency margin of several orders of magnitude; even an
+unoptimised implementation that runs the 50 passes sequentially
+($\approx$1\,s) would be comfortably within budget.
+These figures were measured on a desktop CPU rather than production embedded
+silicon, so absolute timings would differ on a microcontroller; nonetheless the
+41\,KB footprint and few-millisecond batched inference indicate the model fits
+well within the resource envelope of contemporary BMS hardware.
+
+\subsection{Limitations}
+
+The findings reported above should be read alongside the boundaries of the
+present study. The limitations listed below stem mainly from dataset scale and
+the scope of the experimental design rather than from the hybrid framework
+itself, and each points to a concrete opportunity for future work: larger cell
+cohorts would sharpen the statistical claims, shorter fingerprint windows and
+format-matched pretraining data would broaden applicability, and post hoc
+calibration would close the residual coverage gap. We state them explicitly so
+that practitioners can judge how far the present conclusions transfer to their
+own deployment setting.
+
+\begin{enumerate}
+  \item \textit{G1 sample size}: With ten G1 cells, LOOCV results have limited
+        statistical power. The observed two-sided pattern (pooling rescues
+        catastrophic degraders and harms robust cells) is directionally
+        consistent, but quantitative conclusions should be interpreted with
+        this sample size in mind.
+
+  \item \textit{Fingerprint window}: The 30-cycle fingerprint requires at least
+        30 discharge cycles before cell-specific predictions are available.
+        For applications requiring earlier prediction (e.g., first 10 cycles),
+        shorter window studies would be needed.
+
+  \item \textit{Residual calibration gap}: Even after split-conformal
+        correction, coverage reaches 93.9\%, not the nominal 95\%, and two
+        extreme cells (001-8, 003-5) remain substantially under-covered.
+        Conformal guarantees assume exchangeability between calibration and
+        test cells, which manufacturing outliers violate by definition;
+        detecting such cells online (e.g.\ from interval-width anomalies)
+        remains open.
+
+  \item \textit{Format mismatch}: The MIT pretraining cells are 18650 cylindrical
+        (1.1\,Ah); the SIT cells are 50\,Ah prismatic.
+        Despite this format difference, the LFP chemistry match appears sufficient
+        for meaningful transfer.
+        Format-matched pretraining data would likely reduce the remaining gap further.
+
+  \item \textit{LISHEN source corpus size}: The LISHEN dataset contributes only
+        three cells to the cross-dataset evaluation (scenarios M and N).
+        The consistently weak gains in these scenarios ($-$24.6\% to
+        $+$14.6\% for ZS+FP) are attributed to insufficient source diversity
+        rather than a fundamental limitation of the fingerprint mechanism.
+        Future work should re-evaluate with a larger LISHEN corpus.
+
+  \item \textit{Calibration-cell requirement}: The checkpoint-selection
+        protocol requires three target-domain cells cycled to (or near) end of
+        life. This is realistic for a manufacturer qualifying a product, but
+        not for retrofitting arbitrary third-party packs; in that setting a
+        chemistry-matched public dataset could serve as a weaker substitute,
+        which we have not evaluated.
+
+  \item \textit{Comparison scope}: Beyond the four LSTM-family predictors
+        (Simple LSTM, PA-LSTM, GA-LSTM, DE-LSTM), we benchmarked two modern
+        non-recurrent architectures (TCN, Transformer) and two trivial
+        baselines under the identical protocol
+        (Table~\ref{tab:method_comparison}).
+        The modern baselines were run under fixed configurations rather than
+        the per-cell hyperparameter search afforded to GA/PA/DE-LSTM; given
+        the saturation of the one-step metric we do not expect tuning to
+        change the conclusions, but other model classes (e.g.\
+        Gaussian-process regression) remain for future work.
+
+  \item \textit{Evaluation protocol}: The saturation finding implies that
+        one-step RMSE, including our own accuracy numbers, has limited power
+        to rank methods on these data.
+        Harder protocols (fixed early-life budgets, multi-step horizons with
+        scheduled sampling, knee-onset prediction) are the right arena for
+        future accuracy claims; we did not re-benchmark all methods under
+        such protocols here.
+\end{enumerate}

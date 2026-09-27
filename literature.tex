@@ -1,0 +1,122 @@
+This section reviews the prior work most relevant to this study, spanning
+SOH prediction methods, large-format and LFP cells, transfer learning,
+manufacturing variability, and uncertainty quantification.
+
+\subsection{SOH Prediction Methods}
+
+Data-driven SOH prediction has evolved from simple regression models to
+sophisticated deep-learning architectures.
+Recurrent neural networks, particularly LSTM variants, have emerged as
+the dominant approach due to their ability to model long-range temporal
+dependencies in discharge capacity sequences~\cite{zhang2018long}.
+Convolutional architectures form a second major family: deep CNNs with
+ensemble and transfer learning have been applied to capacity
+estimation~\cite{shen2022deep,li2020lithium}, building on early
+demonstrations that deep networks can estimate battery state directly from
+operational measurements~\cite{chemali2018state}.
+
+Attention mechanisms have been incorporated to allow models to weight
+different timesteps in the input window~\cite{bahdanau2015neural}.
+Qu et al.\ proposed PA-LSTM, which augments an LSTM encoder with an
+attention layer and uses particle swarm optimisation (PSO) for hyperparameter
+tuning and model pretraining, with incremental learning for online SOH
+monitoring; PA-LSTM outperformed vanilla LSTM, recurrent neural network (RNN), and relevance vector machine (RVM) baselines on
+NASA cells~\cite{qu2019neural}.
+Subsequent work replaced PSO with other metaheuristics for LSTM hyperparameter
+optimisation: genetic algorithm (GA-LSTM)~\cite{ponnambalam2024battery}
+and differential evolution~\cite{storn1997differential}
+(DE-LSTM)~\cite{ponnambalam2026delstm} both
+achieved significant RMSE reductions on the same NASA cells (B05, B06, B18),
+retained from PA-LSTM to enable direct comparison.
+
+A common thread across these methods is the use of \textit{incremental
+(walk-forward) learning}: the model is trained on the first $p$\% of a cell's
+SOH trajectory and evaluated on the remainder, simulating online deployment.
+This protocol is adopted throughout the present work.
+The proposed hybrid uses the same walk-forward protocol but introduces a
+fundamentally different use of early-cycle data: rather than fitting the
+observed sequence to continue it, a convolutional encoder summarises the
+\textit{shape} of the first 30 cycles into a cell-identity embedding that
+initialises the LSTM hidden state before fine tuning begins.
+This places each cell in the pretrained population's manufacturing
+distribution, discriminating between cell types even when early trajectory
+magnitudes appear similar to a sequence-fitting model.
+
+\subsection{Large-Format and LFP Batteries}
+
+Most published SOH prediction studies use 18650-format cylindrical cells
+(LCO, NMC, NCA, or LFP chemistry, 1 to 3\,Ah).
+Large-format prismatic and pouch cells are the dominant format in stationary
+storage and electric heavy vehicles~\cite{barai2015comparison}, yet they
+are substantially underrepresented in the prediction literature.
+Key differences include: non-uniform current distribution across the
+electrode area~\cite{forgez2010thermal}; larger absolute capacity changes
+per SOH unit (a 1\% SOH change in a 50\,Ah cell = 0.5\,Ah vs.\ 0.02\,Ah
+in a 2\,Ah cell); and different thermal management requirements.
+
+LiFePO$_4$ (LFP) cells are preferred for stationary storage due to their
+flat discharge plateau, long cycle life, and superior thermal
+stability~\cite{barai2015comparison}.
+The flat voltage plateau of LFP makes capacity based SOH estimation more
+robust than voltage based methods, motivating the discharge-capacity
+incremental learning approach used in this work.
+
+\subsection{Transfer Learning for Battery SOH}
+
+Transfer learning (pretraining a model on a source dataset and adapting
+it to a target domain) has attracted growing interest for battery
+prognostics~\cite{severson2019data}.
+Approaches include fine tuning pretrained networks, domain-adversarial
+training, and meta-learning~\cite{finn2017model}.
+Yu et al.~\cite{yu2026crossdomain} addressed cross-domain SOH estimation across
+heterogeneous small-cell datasets (NASA and CALCE), fusing the most similar
+source domains through a similarity network to maintain accuracy when
+target-cell data are scarce.
+Ye and Yu~\cite{ye2021state} applied domain-adversarial transfer learning to
+align feature distributions between source and target cells for SOH estimation.
+Closest to the present work, Ma et al.~\cite{ma2022real} achieve personalised,
+real-time prediction by fine tuning a pretrained model on each cell's most
+recent cycles.
+The fingerprint encoder proposed here uses early-life data differently: it
+treats the first 30 cycles as a static shape that sets the LSTM initial state
+before fine tuning, rather than fine tuning on those cycles directly
+(Section~\ref{sec:mechanism}).
+
+A key practical constraint is chemistry: LFP cells have a fundamentally
+different degradation mechanism (lithium plating, phase transition stress)
+compared to layered-oxide cells such as LiCoO$_2$ (LCO) and NMC (transition metal dissolution, solid electrolyte interphase (SEI) growth)~\cite{birkl2017degradation}.
+Whether a model pretrained on one chemistry can transfer to another
+is an open question addressed in this work through explicit comparison
+of chemistry matched (LFP$\rightarrow$LFP) and chemistry mismatched
+(LFP$\rightarrow$LCO) transfer.
+
+\subsection{Manufacturing Variability}
+
+Cell-to-cell variability arising from manufacturing tolerances is
+well-documented in the electrochemical literature~\cite{birkl2017degradation}
+but rarely quantified in prediction studies.
+Dubarry et al.~\cite{dubarry2018synthesize} showed that even cells from
+the same batch exhibit measurable differences in electrode loading and
+electrolyte fill that propagate to divergent long-term trajectories.
+Severson et al.~\cite{severson2019data} observed that early-cycle
+statistics (first 100 cycles) correlate with cycle life, motivating
+the fingerprint approach adopted here.
+
+To our knowledge, no prior work has simultaneously quantified
+manufacturing variability across 10 identical large-format LFP cells
+and studied how cross-cell pooling interacts with this variability,
+the \textit{two-sided failure mode} we characterise in Section~\ref{sec:variability}.
+
+\subsection{Uncertainty Quantification}
+
+Point-estimate SOH predictions are insufficient for BMS deployment, where
+decisions under uncertainty require calibrated prediction intervals.
+Bayesian neural networks~\cite{blundell2015weight} and Monte Carlo
+Dropout~\cite{gal2016dropout} have been applied to battery SOH uncertainty
+estimation~\cite{ke2024bayesian}, but calibration is rarely verified against
+held-out data, and never across a chemistry mismatch.
+Conformal prediction provides distribution free coverage
+guarantees~\cite{angelopoulos2021gentle}, an attractive property for
+safety-critical battery management.
+In this work we use MC-Dropout and quantify its empirical coverage, revealing
+a chemistry alignment effect that has not been previously reported.

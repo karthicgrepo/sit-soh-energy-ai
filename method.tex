@@ -1,0 +1,248 @@
+This section presents the proposed hybrid model: an overview of its three phases,
+the architecture and training of each, the mechanism that distinguishes the
+fingerprint encoder from conventional fine tuning, and the design of the ablation
+used to isolate each component.
+
+\subsection{Framework Overview}\label{sec:framework}
+
+Figure~\ref{fig:methodology} summarises the proposed method in two steps. Step~1
+(top) builds the hybrid in three phases: it pretrains on past LFP cells, then, for
+each new cell, forms an early-life fingerprint and fine tunes. Step~2 (bottom)
+shows the three outputs this supports, one per deployment question (how healthy
+the cell is now, which cells will fail, and how long each cell will last), and
+pairs each output with the experiment that validates it. Every battery dataset fed
+into the model is marked with a battery icon. The core is the three-phase hybrid
+that predicts next-cycle SOH, detailed below and evaluated in
+Section~\ref{sec:results}.
+Phase~1 pretrains the hybrid network, the convolutional fingerprint encoder
+together with the LSTM, end-to-end on the chemistry matched MIT dataset to
+acquire general LFP degradation knowledge.
+Phase~2 applies the pretrained encoder to the first 30 discharge cycles of a
+target cell, producing a fingerprint that initialises the LSTM hidden state and
+conditions all subsequent predictions.
+Phase~3 fine tunes the LSTM on the target cell's training split and performs
+MC-Dropout inference to deliver uncertainty-aware predictions whose
+prediction intervals are empirically validated rather than merely assumed.
+
+The same early-life representation supports two capabilities developed later in
+the paper. An early screen for manufacturing-defective cells reads the discharge
+voltage curve rather than the capacity trajectory (Section~\ref{sec:screening}),
+and a remaining-useful-life forecaster replaces the one-step head with a direct
+multi-horizon decoder (Section~\ref{sec:rul}). The two transfer levers are
+distinct: the base hybrid is pretrained on the chemistry-aligned MIT LFP set,
+whereas the RUL decoder is pretrained on a 155-cell LFP foundation corpus drawn
+from the MIT, HUST, and SNL collections. These two levers are matched to two
+different tasks rather than merged into one: one-step SOH is a local prediction
+whose accuracy saturates on these smooth large-format trajectories
+(Section~\ref{sec:results}), so the chemistry-aligned MIT corpus is sufficient
+and additional data brings no measurable gain, whereas remaining-useful-life
+forecasting is a long-horizon, data-limited task whose error falls only when the
+corpus is enlarged to the full 155-cell collection
+(Section~\ref{sec:rul_foundation}). Because that foundation set contains the MIT
+cells used for the base hybrid, the two corpora are nested rather than
+independent, so the RUL stage extends the SOH stage rather than competing with
+it; we keep the two pretraining stages separate only so that each transfer lever
+can be isolated in the ablation.
+
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=\textwidth]{methodology.png}
+\caption{The proposed method: the three-phase hybrid and its three validated outputs.}
+\label{fig:methodology}
+\end{figure*}
+
+\subsection{Hybrid Model Architecture}\label{sec:hybrid_arch}
+
+The hybrid model operationalises the two capabilities identified in
+Section~\ref{sec:motivation} through three phases, drawn as the Step~1 sequence at
+the top of Figure~\ref{fig:methodology}:
+
+\subsubsection{Phase 1: MIT Pretraining}
+The complete hybrid architecture (the convolutional fingerprint encoder of
+Phase~2 together with the LSTM) is pretrained \textit{end-to-end} on the
+40-cell MIT LFP corpus (Section~\ref{sec:datasets}).
+For each cell, the first 30 cycles form the fingerprint input and the network
+is trained to predict every \textit{subsequent} cycle's SOH from a recent
+look-back window, minimising next-cycle mean squared error
+(LSTM: $H=64$, $W=20$; Adam, learning rate $10^{-3}$; early stopping on a 10\%
+validation split).
+This single objective jointly learns two things: general LFP degradation
+dynamics in the LSTM, and the mapping from early-life trajectory shape to the
+LSTM initial state in the fingerprint encoder.
+The encoder weights obtained here are reused, and frozen, in Phase~3.
+
+\subsubsection{Phase 2: Convolutional Fingerprint Encoder}
+A 1-D convolutional network (two Conv1D layers with 32 and 16 filters
+respectively, kernel size 3, followed by global average pooling and a dense
+projection) encodes the first 30 SOH cycles of the
+target cell into a 16-dimensional embedding vector.
+This encoder is the same one trained jointly in Phase~1; its parameters are
+not re-learned per target cell.
+Two dense layers project this embedding to the LSTM initial hidden state
+$h_0$ and cell state $c_0$, conditioning predictions on the individual
+cell's observed early behaviour.
+
+Formally, let $\mathbf{s} = [s_1, s_2, \ldots, s_{30}]^{\top} \in \mathbb{R}^{30}$
+denote the first 30 normalised discharge capacities of the target cell.
+The encoder computes:
+\begin{equation}
+  \mathbf{z} = \mathrm{GlobalAvgPool}\!\left(
+    \mathrm{Conv}_2\!\left(\mathrm{Conv}_1(\mathbf{s})\right)
+  \right) \in \mathbb{R}^{16}
+  \label{eq:fingerprint}
+\end{equation}
+\begin{equation}
+  h_0 = \tanh(\mathbf{W}_h\,\mathbf{z} + \mathbf{b}_h), \qquad
+  c_0 = \tanh(\mathbf{W}_c\,\mathbf{z} + \mathbf{b}_c)
+  \label{eq:h0c0}
+\end{equation}
+where $\mathbf{z}$ is the fingerprint embedding from Equation~\eqref{eq:fingerprint},
+$\mathbf{W}_h$ and $\mathbf{W}_c$ are the weight matrices of the two dense
+projection layers, $\mathbf{b}_h$ and $\mathbf{b}_c$ are their bias vectors, and
+$h_0$ and $c_0$ are the resulting LSTM initial hidden and cell states.
+The critical point is that $\mathbf{s}$ is treated as a \textit{static shape},
+not a sequence to continue: the CNN pools over all 30 cycles simultaneously to
+extract curvature, rate of decline, and early-knee features that characterise
+where this cell sits in the manufacturing distribution relative to the
+pretrained population.
+
+\subsubsection{Phase 3: Fine tuning and MC-Dropout}
+The pretrained LSTM is fine tuned
+on the first \textit{train\_pct}\% of the target cell's SOH trajectory,
+starting from the cell-specific initial state $(h_0, c_0)$ produced by the
+fingerprint encoder.
+The fingerprint encoder weights, learned in Phase~1, are held \textit{frozen}
+throughout fine tuning; only the LSTM and output-layer weights are updated.
+Training and inference use fixed-length look-back windows of $W=20$ cycles drawn
+from the target cell's SOH. Each window is processed independently: the LSTM is
+re-initialised to the fingerprint-derived state $(h_0, c_0)$ at the first step of
+every window rather than carrying hidden state across windows, so each prediction
+is conditioned on both the cell-level fingerprint and its local $W$-cycle history.
+The fine tuning objective is:
+\begin{equation}
+  \mathcal{L}_{\mathrm{FT}} = \frac{1}{K}\sum_{t=1}^{K}\!\left(\hat{y}_t - y_t\right)^2,
+  \quad K = \left\lfloor \frac{p}{100} \cdot T \right\rfloor
+  \label{eq:ft_loss}
+\end{equation}
+where $y_t$ is the observed SOH at cycle $t$, $\hat{y}_t$ is the model
+prediction, $T$ is the total cycle count of the target cell, and $p \in
+\{30, 50, 70\}$.
+Dropout (rate 0.2) applied to the LSTM output during both training and
+inference provides uncertainty estimates via 50 stochastic forward passes.
+The 95\% prediction interval is $\hat{y} \pm 1.96\,\hat{\sigma}$ (an approximate
+MC-Dropout interval, not a calibrated confidence interval), where $\hat{\sigma}$
+is the empirical standard deviation across the 50 passes.
+
+\subsection{Pretraining-Run Variance and Checkpoint Selection}\label{sec:selection}
+
+Pretraining a neural network is stochastic: independent runs on the identical
+corpus, differing only in random initialisation, converge to representations of
+very different transfer quality.
+Across five deterministic pretraining runs of Phase~1, downstream SIT
+improvement over scratch ranged from $-32\%$ to $+52\%$: three runs learned
+genuine degradation dynamics while two collapsed toward a persistence
+solution that transfers poorly.
+Crucially, \emph{source-domain criteria failed to identify the collapsed
+runs}: MIT validation loss was essentially identical for good and collapsed
+runs (${\approx}3.4\times10^{-3}$), one-step-ahead RMSE on held-out MIT cells
+was \emph{inverted} (collapsed runs win it, because persistence excels at
+one-step prediction), and recursive multi-step rollout was uninformative.
+
+We therefore adopt a simple target-domain selection protocol:
+\begin{enumerate}
+  \item pretrain $k=5$ candidate checkpoints with independent seeds;
+  \item evaluate each candidate's fine-tuned RMSE on the three designated
+        \emph{calibration cells} (Section~\ref{sec:eval});
+  \item deploy the checkpoint with the lowest mean calibration RMSE.
+\end{enumerate}
+The calibration cells are chosen by an a-priori rule (the numerically first
+cell of each condition group) and are excluded from all reported results.
+The protocol is robust to the choice of calibration cells: exhaustively
+enumerating all $\binom{20}{3}=1140$ possible three-cell calibration sets,
+95.5\% select a checkpoint with positive test improvement.
+In deployment terms the protocol is realistic: a manufacturer qualifying a
+battery product retains laboratory cells of that product, and three such
+cells suffice.
+All results in Section~\ref{sec:results} use the selected checkpoint; the
+full five-run sensitivity study is released with the code.
+
+\subsection{Mechanism Contrast: Fingerprint Encoder vs.\ Fine Tuning}\label{sec:mechanism}
+
+Although Phases 2 and 3 both draw on the same early-cycle SOH data, they
+use it in fundamentally different ways, a distinction that directly motivates
+the ablation study in Section~\ref{sec:ablation_design}.
+Table~\ref{tab:mechanism_contrast} makes this contrast explicit.
+
+\begin{table*}[!t]
+\caption{Comparison of the two mechanisms that use early-cycle SOH data.}
+\label{tab:mechanism_contrast}
+\centering
+\begin{tabularx}{\textwidth}{l X X}
+\toprule
+ & \textbf{Incremental fine tuning} & \textbf{Fingerprint encoder} \\
+\midrule
+\textit{Input view} & Time series $s_1 \to s_2 \to \cdots \to s_K$ & Static shape $\mathbf{s} \in \mathbb{R}^{30}$ \\
+\textit{Operation}  & Adjust LSTM weights $\theta$ to minimise $\mathcal{L}_{\mathrm{FT}}$ & Map shape to $(h_0, c_0)$ via CNN \\
+\textit{Output}     & Updated model weights & Cell-specific initial state \\
+\textit{Question answered} & What comes next in this sequence? & What type of degrader is this cell? \\
+\textit{Limitation} & Ambiguous for extreme cells in the first $p$\% & Requires a diverse pretraining corpus \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+For cells at the extremes of the manufacturing distribution
+(catastrophically fast: cell 001-8; exceptionally robust: cells 001-5
+and 001-7), the first 50\% of the SOH trajectory is \textit{ambiguous}:
+it resembles a moderate degrader.
+Fine tuning on this ambiguous first half fits a moderate trajectory and
+projects it forward, substantially underestimating the second half.
+The fingerprint encoder, by contrast, conditions the LSTM on the early-life
+trajectory shape (curvature and rate of decline across the first 30 cycles),
+placing the prediction in the context of the pretrained population.
+Whether this conditioning encodes precise cell \emph{identity} or a more
+generic in-distribution prior is an empirical question; a shuffled-fingerprint
+control in Section~\ref{sec:results} shows the latter dominates, and we
+interpret the mechanism accordingly.
+
+\subsection{Ablation Study Design}\label{sec:ablation_design}
+
+To isolate the contribution of each hybrid component, four configurations
+are compared:
+\begin{enumerate}
+  \item \textbf{Scratch LSTM}: Train the hybrid's LSTM backbone
+        ($H{=}64$, $W{=}20$) from scratch on the target cell's training split
+        only, with no pretraining, no fingerprint, and no differential-evolution
+        hyperparameter search. This is the ablation control for the hybrid and is
+        distinct from the DE-optimised DE-LSTM baseline of
+        Section~\ref{sec:baseline}; the two therefore differ in RMSE.
+  \item \textbf{Zero-shot (pretrain + fingerprint, no fine tuning)}: the MIT
+        pretrained model with the fingerprint-derived initial state applied
+        directly to the target cell, with \textit{no fine tuning} on target
+        data (here \textit{zero-shot} denotes the absence of target-cell fine
+        tuning; the first 30 cycles are still used to compute the fingerprint).
+        Isolates the value of pretraining and the fingerprint before any
+        target-cell adaptation.
+  \item \textbf{Pretrain + fine tune (no fingerprint)}: MIT pretrained
+        model fine tuned on the target cell's training split, but without
+        the fingerprint encoder.
+        Quantifies the marginal value of the fingerprint over fine tuning alone.
+  \item \textbf{Full hybrid}: All three phases (pretrain + fingerprint + fine-tune).
+\end{enumerate}
+
+\subsection{Reproducibility and Determinism}\label{sec:repro}
+
+All experiments run under a fully deterministic configuration: a single
+global seed set via \texttt{tf.keras.utils.set\_random\_seed} (which, unlike
+\texttt{tf.random.set\_seed} alone, also seeds Keras weight initialisers),
+TensorFlow op-determinism enabled, and float32 precision throughout.
+Under this configuration every number reported in this paper reproduces
+byte-for-byte from a fresh clone of the released code.
+The repository includes a single-command verification script
+(\texttt{verify\_determinism.sh}) that exercises each experiment family's
+actual training and inference code path twice in separate processes and
+byte-compares the outputs, so that reviewers and users can confirm
+determinism on their own hardware before relying on the pipeline.
+We adopted this discipline after observing that library-default (unseeded)
+training produced run-to-run variation large enough to alter experimental
+conclusions (Sections~\ref{sec:baseline} and~\ref{sec:brittleness}); we
+regard it as a necessary condition for benchmark claims in this field.

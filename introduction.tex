@@ -1,0 +1,85 @@
+The accurate estimation of battery state of health (SOH) is a prerequisite
+for the safe and efficient operation of lithium-ion batteries in electric
+vehicles (EVs), grid-scale energy storage, and consumer
+electronics~\cite{lipu2018review}.
+SOH is the ratio of a cell's present usable capacity to its original rated
+capacity; as a cell is charged and discharged over hundreds of cycles this
+ratio falls, and the point at which it drops too far sets the battery's usable
+lifetime and dictates when it must be replaced~\cite{birkl2017degradation}.
+Predicting how SOH will decline, ideally early and for each individual cell, is
+therefore central to managing cost, safety, and warranty risk in every large
+battery deployment.
+
+Over the past decade, deep learning has produced increasingly capable SOH
+prediction models, progressing from standard long short-term memory (LSTM)
+networks to attention-augmented variants~\cite{qu2019neural} and models whose
+hyperparameters are tuned by metaheuristic
+search~\cite{ponnambalam2024battery,ponnambalam2026delstm}.
+Yet almost all of these methods are developed and benchmarked in the same
+narrow setting: small cylindrical 18650 cells of 1 to 3\,Ah (LCO, NMC, or NCA
+chemistry) cycled at constant current in the laboratory.
+The NASA Prognostics Repository~\cite{saha2007battery}, and in particular its
+cells B05, B06, B07, and B18, has been the field's de facto benchmark since
+2007, appearing in roughly 30.8\% of all published SOH and remaining-useful-life
+(RUL) studies~\cite{xu2025review,bairwa2025cycle}.
+
+This near-exclusive reliance on small laboratory cells creates a gap that only
+becomes visible at deployment.
+The batteries that actually run electric vehicles and grid storage are
+large-format prismatic or pouch cells of 10 to 200\,Ah~\cite{forgez2010thermal},
+operated across a wide range of temperatures and charge and discharge rates.
+Crucially, cells that are nominally identical, built to the same design on the
+same production line, can age very differently because of small, unavoidable
+variations introduced during manufacturing~\cite{birkl2017degradation}.
+This manufacturing variability is largely absent from the hand-picked, smoothly
+degrading cells that populate standard benchmarks, yet it is precisely what a
+manufacturer or fleet operator must contend with: warranties, safety margins,
+and replacement schedules all depend on predicting the life of each individual
+cell, not an average one.
+Just how severe this variability is on large-format cells, and whether it,
+rather than the choice of algorithm, sets the ultimate limit on prediction,
+remains unknown.
+
+A second, more subtle problem lies in how the field measures success.
+Almost all of this literature ranks methods by one-step-ahead error: given a
+cell's observed history, predict its SOH one cycle into the future.
+On the smooth, slowly changing trajectories of large-format cells, however, this
+is barely harder than assuming that the next cycle simply repeats the last,
+which raises a basic question: can a metric so close to a trivial baseline
+actually tell one method apart from another?
+If it cannot, then a leaderboard built on it is uninformative, and predictors
+need to be judged by something that matters in the field instead, the practical
+capabilities they enable: predicting a brand-new cell before it has aged,
+attaching trustworthy confidence bounds to each forecast, flagging defective
+cells early, and forecasting remaining useful life.
+
+The objective of this paper is to close this gap between benchmark practice and
+deployment reality.
+Using an 18-month dataset of 20 large-format LiFePO$_4$ prismatic cells
+(50\,Ah) cycled under three temperature and C-rate
+conditions~\cite{ponnambalam2026sitdata}, we set out to establish how far
+manufacturing variability, rather than model choice, governs prediction on
+industrial-format cells, and to determine what a prediction method must provide
+to be useful once these cells are deployed.
+In place of a single accuracy score, we take as our goal a model that can
+predict an unseen cell from only its earliest cycles, report and correct its own
+uncertainty, remain reliable when the available training data come from a
+different battery chemistry, and extend to the related deployment tasks of early
+defect screening and remaining-useful-life forecasting.
+
+The remainder of this paper is organised as follows.
+Section~\ref{sec:literature} reviews the related literature.
+Section~\ref{sec:gap} states the research gaps and summarises the contributions
+of this work.
+Section~\ref{sec:methodology} describes the datasets, the DE-LSTM baseline, and
+the evaluation protocol.
+Section~\ref{sec:problem} characterises the deployment challenges empirically on
+the SIT cells.
+Section~\ref{sec:method} presents the proposed hybrid model.
+Section~\ref{sec:results} reports its evaluation, including the ablation study and
+the cross-dataset validation.
+Section~\ref{sec:screening} shows how the manufacturing-defective cells can be
+detected early from the discharge voltage curve.
+Section~\ref{sec:rul} extends the hybrid to remaining-useful-life forecasting.
+Section~\ref{sec:discussion} discusses implications for deployment, and
+Section~\ref{sec:conclusion} concludes.
