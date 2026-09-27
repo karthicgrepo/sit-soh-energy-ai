@@ -98,6 +98,42 @@ Pretraining on chemistry matched LFP cells is a deliberate design choice
 motivated by the chemistry alignment hypothesis evaluated in
 Section~\ref{sec:discussion}.
 
+\subsubsection{External Datasets}
+Four further datasets support the cross-chemistry test and the transfer and RUL
+experiments. The NASA Prognostics Center of Excellence
+dataset~\cite{saha2007battery} provides 26 lithium cobalt oxide (LCO) 18650
+cells of about 2\,Ah cycled at several ambient temperatures under
+constant-current discharge; because its chemistry differs from the LFP target
+cells, it serves as the cross-chemistry generalisation test. The LISHEN
+dataset~\cite{lishen_zenodo} provides 3 large-format 40\,Ah LFP prismatic cells
+cycled at 2\,C over a 20\% depth-of-discharge window, used as a third,
+independent LFP source in the cross-dataset transfer matrix. The HUST and Sandia
+(SNL) collections provide 77 and 29 LFP 18650 cells respectively; together with
+the 49 MIT cells they form the 155-cell LFP foundation corpus that pretrains the
+RUL decoder (Section~\ref{sec:rul_foundation}). Table~\ref{tab:datasets}
+consolidates the chemistry, format, capacity, cell count, operating conditions,
+and role of every dataset used in this study.
+
+\begin{table*}[t]
+\centering
+\caption{Datasets used in this study.}\label{tab:datasets}
+\footnotesize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l l l r r l l}
+\toprule
+Dataset & Chemistry & Format & Cap.\ (Ah) & Cells & Conditions & Role in this study \\
+\midrule
+SIT (primary) & LFP & Prismatic & 50  & 20 & 25 to 40\,\textcelsius, 1 to 2\,C     & Target cells: testing and checkpoint selection \\
+MIT/Severson  & LFP & 18650     & 1.1 & 40 & Fast charge, multi-protocol           & Base-hybrid pretraining (training) \\
+NASA PCoE     & LCO & 18650     & 2   & 26 & Varied temperature, constant current  & Cross-chemistry test (testing) \\
+LISHEN        & LFP & Prismatic & 40  & 3  & 2\,C, 20\% depth of discharge         & Third LFP source, cross-dataset transfer \\
+HUST          & LFP & 18650     & 1.1 & 77 & Multi-rate discharge                  & RUL foundation corpus (training) \\
+SNL (Sandia)  & LFP & 18650     & 1.1 & 29 & Varied temperature, rate, DOD         & RUL foundation corpus (training) \\
+\bottomrule
+\end{tabular}%
+}
+\end{table*}
+
 \subsection{Baseline: DE-LSTM}\label{sec:delstm}
 
 DE-LSTM~\cite{ponnambalam2026delstm} is the strongest model from our prior work
