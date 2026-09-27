@@ -2,9 +2,10 @@
 % saturation finding and cell-to-cell variation, then position the hybrid as a
 % deployment capability set, not a one-step winner (C24). Terminology: cell-to-cell
 % variability (C2), fingerprint-conditioned transfer (C6), improvement scoped to
-% "over scratch" (C23). NUMBERS TO RECONCILE after the C10 cascade: the 38\% and
-% 53.5\% reductions come from the ablation and will be re-verified against the new
-% checkpoint; AUC 0.78 (screening) and 49-cycle RUL are independent of the C10 fix.
+% "over scratch" (C23). Numbers reconciled to the C10 cell-disjoint checkpoint:
+% fingerprint-transfer 23\%, fine-tuned 51\% (17 test cells). AUC 0.78 (screening)
+% and 49-cycle RUL are independent of the C10 fix. Coverage number omitted here
+% pending the grouped-conformal recomputation (C12/C13).
 Accurate state-of-health (SOH) forecasting is important for battery management, yet
 most machine-learning studies are evaluated on small laboratory cells with rolling
 one-step-ahead prediction, where the model is continuously supplied with the latest
@@ -22,8 +23,8 @@ These findings motivate a deployment-oriented framework that targets capabilitie
 beyond one-step accuracy. The proposed hybrid model combines LFP pretraining, an
 early-life fingerprint encoder over the first 30 cycles, target-cell fine-tuning, and
 uncertainty estimation. Without target-cell fine-tuning, fingerprint-conditioned
-transfer reduces RMSE by 38\% relative to training from scratch, and subsequent
-fine-tuning increases the average reduction to 53.5\% over the same scratch baseline.
+transfer reduces RMSE by 23\% relative to training from scratch, and subsequent
+fine-tuning increases the average reduction to 51\% over the same scratch baseline.
 The framework is further evaluated for uncertainty estimation, early identification
 of fast-degrading cells, cross-dataset transfer, and remaining-useful-life
 forecasting. Early-life voltage-curve features flag cells at risk of premature

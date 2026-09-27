@@ -94,11 +94,11 @@ This paper makes the following key contributions:
         MC-Dropout uncertainty) and conduct a full ablation study isolating
         each component's contribution.
         The hybrid predicts new cells from 30 cycles with no target-cell
-        fine-tuning (38\% better than scratch) and achieves a 53.5\%
+        fine-tuning (23\% better than scratch) and achieves a 51\%
         mean RMSE improvement over scratch with fine tuning, on all 17 of 17
         test cells; it is the only evaluated method that quantifies
-        uncertainty, reaching 94\% empirical coverage after split-conformal
-        correction (Section~\ref{sec:solution}).
+        uncertainty, with prediction intervals that are recalibrated by
+        grouped conformal inference (Section~\ref{sec:solution}).
         We additionally characterise pretraining-run variance, show that
         source-domain criteria cannot detect poorly transferring pretraining
         runs, and introduce a calibration-cell checkpoint-selection protocol
@@ -108,7 +108,7 @@ This paper makes the following key contributions:
   \item \textbf{Chemistry-alignment effect with multi-dataset validation}:
         We demonstrate that MC-Dropout uncertainty calibration transfers between
         datasets only when pretraining and deployment chemistries are matched
-        (LFP$\rightarrow$LFP: 82\% coverage; LFP$\rightarrow$LCO: 43\%
+        (LFP$\rightarrow$LFP: 80.8\% coverage; LFP$\rightarrow$LCO: 43.6\%
         coverage).
         A ten-scenario cross-dataset experiment spanning three LFP datasets
         (MIT, SIT, LISHEN 40\,Ah) and one LCO dataset confirms this effect

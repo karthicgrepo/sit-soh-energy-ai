@@ -1,7 +1,7 @@
 This section evaluates the hybrid through an ablation isolating each component,
 the main accuracy results on the 17 SIT test cells, conformal calibration of its
-uncertainty intervals, and a cross-dataset validation of the chemistry alignment
-principle.
+uncertainty intervals, and a cross-dataset validation of the chemistry-alignment
+effect.
 
 \subsection{Ablation Study and Main Results}\label{sec:solution}
 
@@ -19,9 +19,9 @@ hybrid's accuracy and calibration across the 17 test cells (the three calibratio
 Configuration & RMSE & Improvement vs scratch & PI Coverage \\
 \midrule
 Scratch LSTM             & $0.043 \pm 0.050$ & (baseline)  & n/a   \\
-Zero-shot (MIT + FP, no FT) & $0.025 \pm 0.026$ & 38.2\%$^\ddag$   & 77.3\%\\
-Pretrain + FT (no fing.) & $0.017 \pm 0.016$ & 47.7\%$^\ddag$   & 79.8\%\\
-Full hybrid (proposed)   & $\mathbf{0.014 \pm 0.013}$ & \textbf{53.5\%}$^\ddag$  & 82.1\%\\
+Fingerprint transfer (MIT + FP, no FT) & $0.030 \pm 0.031$ & 23.3\%$^\ddag$   & 74.3\%\\
+Pretrain + FT (no fing.) & $0.018 \pm 0.017$ & 44.4\%$^\ddag$   & 79.0\%\\
+Full hybrid (proposed)   & $\mathbf{0.016 \pm 0.014}$ & \textbf{51.1\%}$^\ddag$  & 80.8\%\\
 \bottomrule
 \multicolumn{4}{l}{$^\ddag$ Wilcoxon $p<0.001$ vs scratch.}
 \end{tabular}%
@@ -37,29 +37,31 @@ Full hybrid (proposed)   & $\mathbf{0.014 \pm 0.013}$ & \textbf{53.5\%}$^\ddag$ 
 
 Table~\ref{tab:ablation} and Figure~\ref{fig:ablation}, which plots the same
 mean RMSE per configuration, show that every component contributes and the
-effects compose monotonically: zero-shot transfer (pretrained model with the
-fingerprint-derived initial state, \emph{no} fine tuning on target data)
-already achieves a 38.2\% improvement over scratch and beats scratch on all
-17 test cells; adding fine tuning without the fingerprint reaches 47.7\%;
-and the full hybrid reaches 53.5\% (all Wilcoxon $p<0.001$).
+effects compose monotonically: fingerprint-conditioned transfer (pretrained
+model with the fingerprint-derived initial state, \emph{no} fine tuning on
+target data) already achieves a 23.3\% improvement over scratch and beats
+scratch on 13 of 17 test cells; adding fine tuning without the fingerprint
+reaches 44.4\%; and the full hybrid reaches 51.1\% (all Wilcoxon $p<0.001$).
 Three observations stand out.
-First, the zero-shot configuration is the capability no other evaluated
-method offers: RMSE 0.025 for a cell with \emph{no} target-cell training,
-from 30 observed cycles, recovering roughly 70\% of the full hybrid's
-benefit before any adaptation is possible.
+First, fine tuning is the larger and more dependable lever: it accounts for the
+bulk of the improvement, whereas fingerprint-conditioned transfer recovers
+under half of the full hybrid's benefit before any adaptation is possible. That
+transfer capability is nonetheless one no other evaluated method offers, giving
+RMSE 0.030 for a cell with \emph{no} target-cell training, from 30 observed
+cycles.
 Second, the fingerprint and fine tuning are complementary rather than
 redundant: the fingerprint on top of pretraining+fine tuning still reduces
-RMSE from 0.017 to 0.014.
-Third, a shuffled-fingerprint control clarifies the mechanism: replacing each
-test cell's fingerprint with another cell's raises full-hybrid RMSE only from
-0.0141 to 0.0146.
-The conditioning therefore works chiefly by placing the LSTM in the
-\emph{pretrained population's} operating regime (any in-distribution
-early-life shape suffices) rather than by encoding a precise cell identity,
-which is consistent with the two mechanisms remaining complementary
-(Section~\ref{sec:mechanism}).
+RMSE from 0.018 to 0.016.
+Third, the fingerprint conditioning works chiefly by placing the LSTM in the
+\emph{pretrained population's} operating regime (any in-distribution early-life
+shape suffices) rather than by encoding a precise cell identity. This reading is
+reinforced by the fingerprint-control analysis of Section~\ref{sec:mechanism},
+where a shuffled or population-mean fingerprint performs close to the correct
+one, and by the finding that the trained encoder maps all cells to a nearly
+constant embedding: the mechanism is a population prior, not cell-specific
+identification.
 Prediction-interval coverage improves in the same monotone order
-(77.3\%~$\rightarrow$~79.8\%~$\rightarrow$~82.1\%), so with a
+(74.3\%~$\rightarrow$~79.0\%~$\rightarrow$~80.8\%), so with a
 well-selected pretrained checkpoint there is no accuracy versus calibration
 trade-off among the configurations.
 
@@ -73,11 +75,11 @@ trade-off among the configurations.
 \toprule
 Group & $n$ & Hybrid RMSE & Scratch RMSE & Improvement & PI Coverage \\
 \midrule
-G1 (25\,\textcelsius, 1C) & 9 & $0.015\pm0.012$ & $0.035\pm0.034$ & 44.0\% & 80.3\% \\
-G2 (40\,\textcelsius, 1C) &  3 & $0.005\pm0.002$ & $0.016\pm0.013$ & 56.8\% & 79.0\% \\
-G3 (40\,\textcelsius, 2C) &  5 & $0.019\pm0.016$ & $0.073\pm0.077$ & 68.8\% & 87.1\% \\
+G1 (25\,\textcelsius, 1C) & 9 & $0.015\pm0.011$ & $0.035\pm0.034$ & 42.3\% & 77.8\% \\
+G2 (40\,\textcelsius, 1C) &  3 & $0.006\pm0.002$ & $0.016\pm0.013$ & 54.4\% & 75.5\% \\
+G3 (40\,\textcelsius, 2C) &  5 & $0.023\pm0.021$ & $0.073\pm0.077$ & 65.1\% & 89.6\% \\
 \midrule
-All SIT (test)            & 17 & $0.014\pm0.013$ & $0.043\pm0.050$ & 53.5\% & 82.1\% \\
+All SIT (test)            & 17 & $0.016\pm0.014$ & $0.043\pm0.050$ & 51.1\% & 80.8\% \\
 \bottomrule
 \end{tabular}%
 }
@@ -91,17 +93,17 @@ improvement, and the PI coverage down by operating-condition group.
 Figure~\ref{fig:hybrid_percell} shows the per-cell results: the top panel
 compares each cell's scratch and hybrid RMSE, while the bottom panel gives the
 corresponding per-cell improvement of the hybrid over scratch (positive for
-every test cell; the smallest improvement is 14.9\% on cell 101-1).
+every test cell; the smallest improvement is 15.2\% on cell 101-1).
 
 On the one-step metric itself, every method is bunched on a saturated scale:
-the hybrid's mean RMSE is 0.0212, 0.0141 and 0.0156 at the 30\%, 50\% and 70\%
+the hybrid's mean RMSE is 0.0241, 0.0156 and 0.0148 at the 30\%, 50\% and 70\%
 splits (Figure~\ref{fig:method_comparison}), the per-cell-tuned DE-LSTM reaches
 0.0118 and 0.0105 at 50\% and 70\%, and even a trivial linear autoregressor sits
 near 0.005, differences that carry little information on this saturated benchmark
 (Section~\ref{sec:baseline}). The hybrid's decisive advantage is therefore not a
 marginal one-step number but a set of capabilities that no other method on the
 leaderboard provides. It is the only method that operates with no target training
-at all (zero-shot, 0.025), the only method that quantifies uncertainty
+at all (fingerprint-conditioned transfer, 0.030), the only method that quantifies uncertainty
 (Section~\ref{sec:conformal}), and the only one validated across three
 manufacturers (MIT, SIT and LISHEN), two chemistries (LFP and LCO) and three
 operating conditions (Section~\ref{sec:cross_dataset}), whereas PA-LSTM, GA-LSTM
@@ -112,9 +114,9 @@ next paragraph shows.
 
 Within G1, the hybrid is particularly effective for catastrophic degraders
 (Figure~\ref{fig:prediction}):
-cell 001-8 (SOH$_\text{end}=0.067$) improves 58.2\%
-(0.041 vs.\ 0.098 scratch); cell 101-3 (SOH$_\text{end}=0.118$) improves
-81.1\% (0.016 vs.\ 0.083).
+cell 001-8 (SOH$_\text{end}=0.067$) improves 61.8\%
+(0.038 vs.\ 0.098 scratch); cell 101-3 (SOH$_\text{end}=0.118$) improves
+78.5\% (0.018 vs.\ 0.083).
 Both gains are driven by the MIT pretraining, which has encountered
 comparable extreme-degradation trajectories in the training population,
 a trajectory the scratch model cannot learn from 50\% of a single
@@ -128,7 +130,7 @@ Across all three the hybrid tracks both gentle and catastrophic trajectories, an
 the prediction interval widens where degradation is steepest.
 
 For G3 test cells (40\,\textcelsius/2C), the hybrid achieves mean RMSE of
-0.019, a 68.8\% improvement over the scratch LSTM given the same 50\% G3 fine
+0.023, a 65.1\% improvement over the scratch LSTM given the same 50\% G3 fine
 tuning data (0.073; Table~\ref{tab:hybrid_main}), by combining MIT-learned
 generic LFP priors with that fine tuning.
 Cold cross-condition transfer (a G1-trained model applied to G3 with no G3
@@ -138,8 +140,8 @@ against the equally-fine-tuned scratch model above is the fair like-for-like
 measure of the hybrid's contribution.
 The G3 conclusions are not an artefact of cell 003-5 (the SOH$>$1
 capacity-recovery cell): excluding it, the four remaining G3 test cells give a
-hybrid RMSE of 0.014 (scratch 0.039), a 65.7\% mean per-cell improvement versus
-68.8\% with 003-5 included, so the artefact slightly inflates but does not
+hybrid RMSE of 0.015 (scratch 0.039), a 63.1\% mean per-cell improvement versus
+65.1\% with 003-5 included, so the artefact slightly inflates but does not
 drive the result.
 
 \begin{figure*}[htbp]
@@ -159,6 +161,11 @@ drive the result.
 \subsubsection{Conformal Calibration of the Uncertainty
 Intervals}\label{sec:conformal}
 
+% TODO(C12/C13): the coverage figures in this subsection (raw ladder 41/68/78/84/91,
+% and the 84.4->93.9 split-conformal result) are from the pre-C10 checkpoint and a
+% single calibration/selection split. They will be replaced by GROUPED/CROSS-conformal
+% numbers on the new cell-disjoint checkpoint, with model-selection cells separated from
+% calibration cells (raw nominal-95 MC coverage is now 80.8% on the 17 test cells).
 The raw MC-Dropout intervals are approximate (Section~\ref{sec:hybrid_arch})
 and under-cover in practice: pooled over the 17 test cells, the empirical
 coverage of nominal 50/80/90/95/99\% intervals is 41/68/78/84/91\%
@@ -188,7 +195,7 @@ while flagged outliers still require conservative handling.
 \label{fig:calibration}
 \end{figure}
 
-\subsubsection{Uncertainty Calibration: The Chemistry Alignment Principle}
+\subsubsection{Uncertainty Calibration: The Chemistry-Alignment Effect}
 
 \begin{figure*}[htbp]
 \centering
@@ -199,8 +206,8 @@ while flagged outliers still require conservative handling.
 
 Figure~\ref{fig:coverage} plots the empirical 95\% PI coverage per cell (left)
 and averaged per dataset group (right), and reveals a striking pattern: PI
-coverage on SIT LFP cells (82.1\% mean) is nearly double that on NASA LCO
-cells (43.1\%), despite using the same MC-Dropout rate (0.2) and the same
+coverage on SIT LFP cells (80.8\% mean) is nearly double that on NASA LCO
+cells (43.6\%), despite using the same MC-Dropout rate (0.2) and the same
 nominal 95\% target.
 The most prominent structural difference is chemistry: the MIT pretraining data
 are LFP cells (matched to SIT), whereas NASA cells are LCO (LiCoO$_2$~\cite{saha2007battery}; mismatched). The
@@ -208,7 +215,7 @@ datasets also differ in cell format, laboratory and cycling protocol, so
 chemistry is the most likely, but not the only possible, contributor to the
 coverage gap; the cross-dataset study below helps disentangle it.
 
-This \textbf{chemistry alignment principle} has a practical implication for
+This \textbf{chemistry-alignment effect} has a practical implication for
 BMS deployment: transfer learning preserves uncertainty calibration only
 when the pretraining and deployment chemistries are matched.
 Deploying a model pretrained on LFP data to LCO cells not only degrades
@@ -217,11 +224,11 @@ overconfident predictions that could mask true risk.
 Post-hoc calibration (conformal prediction~\cite{angelopoulos2021gentle}
 or isotonic regression) is required when chemistry is mismatched.
 
-\subsection{Cross-Dataset Validation of the Chemistry Alignment
-  Principle}\label{sec:cross_dataset}
+\subsection{Cross-Dataset Validation of the Chemistry-Alignment
+  Effect}\label{sec:cross_dataset}
 
-The analysis in Section~\ref{sec:solution} established the chemistry alignment
-principle from a single source-target pair (MIT$\rightarrow$SIT).
+The analysis in Section~\ref{sec:solution} established the chemistry-alignment
+effect from a single source-target pair (MIT$\rightarrow$SIT).
 To verify that this finding generalises, we evaluate the hybrid framework
 across ten pairwise transfer scenarios spanning three LFP datasets
 (MIT Severson~\cite{severson2019data}, SIT, and LISHEN 40\,Ah LFP) and one
@@ -241,18 +248,18 @@ and cycling protocol.
 Sc. & Source & Target & Chem. & ZS+FP & PT+FT & Hybrid \\
 \midrule
 \multicolumn{7}{@{}l}{\textit{LFP$\leftrightarrow$LFP (chemistry matched)}} \\
-A & MIT (40\,cells) & SIT        & LFP & $+$38.2\% & $+$47.7\% & $+$53.5\% \\
-G & MIT (40\,cells) & LISHEN     & LFP & $+$80.2\% & $+$66.2\% & $+$64.5\% \\
-B & SIT (20\,cells) & MIT        & LFP & $+$19.6\% & $+$57.1\% & $+$59.5\% \\
-H & SIT (20\,cells) & LISHEN     & LFP & $-$22.6\% & $+$46.1\% & $+$38.6\% \\
-N & LISHEN (3\,cells) & MIT      & LFP & $+$14.6\% & $+$4.7\% & $+$4.1\% \\
-M & LISHEN (3\,cells) & SIT      & LFP & $-$24.6\% &  $+$5.8\% &  $+$5.2\% \\
+A & MIT (40\,cells) & SIT        & LFP & $+$23.3\% & $+$44.4\% & $+$51.1\% \\
+G & MIT (40\,cells) & LISHEN     & LFP & $+$80.7\% & $+$71.2\% & $+$70.7\% \\
+B & SIT (20\,cells) & MIT        & LFP & $+$26.1\% & $+$57.8\% & $+$59.7\% \\
+H & SIT (20\,cells) & LISHEN     & LFP & $-$13.4\% & $+$45.9\% & $+$41.5\% \\
+N & LISHEN (3\,cells) & MIT      & LFP & $+$12.1\% & $+$4.4\% & $+$4.0\% \\
+M & LISHEN (3\,cells) & SIT      & LFP & $-$30.4\% &  $+$5.8\% &  $+$5.7\% \\
 \midrule
 \multicolumn{7}{@{}l}{\textit{LCO$\leftrightarrow$LFP (chemistry-mismatched)}} \\
-C & MIT (LFP) & NASA (LCO) & cross & $+$15.6\% & $+$8.8\% & $+$8.9\% \\
-D & SIT (LFP) & NASA (LCO) & cross & $+$4.8\% & $+$21.6\% & $+$21.6\% \\
-E & NASA (LCO) & SIT (LFP) & cross & $+$26.8\% & $+$44.1\% & $+$43.1\% \\
-F & NASA (LCO) & MIT (LFP) & cross & $+$37.2\% & $+$59.8\% & $+$59.5\% \\
+C & MIT (LFP) & NASA (LCO) & cross & $+$9.5\% & $+$4.7\% & $+$0.2\% \\
+D & SIT (LFP) & NASA (LCO) & cross & $+$6.4\% & $+$22.4\% & $+$22.5\% \\
+E & NASA (LCO) & SIT (LFP) & cross & $+$22.6\% & $+$44.6\% & $+$43.6\% \\
+F & NASA (LCO) & MIT (LFP) & cross & $+$32.2\% & $+$59.0\% & $+$58.9\% \\
 \bottomrule
 \end{tabular*}
 \end{table*}
@@ -274,9 +281,9 @@ Together with Figure~\ref{fig:cross_dataset}, the results support three findings
 
 \subsubsection{Fine tuning is the dependable adaptation mechanism}
 Pretraining plus fine tuning improves over scratch in \emph{all ten}
-scenarios ($+$4.7\% to $+$66.2\%, mean 36.2\%), and the full hybrid tracks
-it closely (mean 35.9\%), being best or within one point of best in six of
-ten (A, B, D, E, F and~M).
+scenarios ($+$4.4\% to $+$71.2\%, mean 36.0\%), and the full hybrid tracks
+it closely (mean 35.8\%), being best or within one point of best in eight of
+ten (A, B, D, E, F, G, M and~N).
 Whatever the source corpus, chemistry, or cell format, fine tuning a
 pretrained model on the target cell's history is never worse than training
 from scratch in these experiments, which makes it the mechanism a
@@ -284,21 +291,21 @@ practitioner can rely on when facing an unfamiliar dataset pair.
 The weakest transfers (M and~N, both below 6\%) share one cause: the 3-cell
 LISHEN corpus is too narrow a pretraining source for either mechanism.
 
-\subsubsection{Zero-shot conditioning is a distinct capability, not a
+\subsubsection{Fingerprint-conditioned transfer is a distinct capability, not a
 universal accuracy win}
-Zero-shot performance varies far more across scenarios ($-$24.6\% to
-$+$80.2\%) than fine tuning does.
+Fingerprint-conditioned transfer performance varies far more across scenarios
+($-$30.4\% to $+$80.7\%) than fine tuning does.
 It is strongly positive precisely where the pretrained population resembles
 the deployment population: the paper's primary scenario~A
-(MIT$\rightarrow$SIT, $+$38.2\%) and scenario~G (MIT$\rightarrow$LISHEN,
-$+$80.2\%), both large LFP corpora transferring to LFP targets.
+(MIT$\rightarrow$SIT, $+$23.3\%) and scenario~G (MIT$\rightarrow$LISHEN,
+$+$80.7\%), both large LFP corpora transferring to LFP targets.
 It fails when the source poorly spans the target (H and M, both negative:
 SIT's 20 heterogeneous cells and LISHEN's 3 cells do not cover each other's
 regimes), because the fingerprint places a cell within the
 \emph{pretraining} population's degradation distribution, and that placement
 misleads when the distribution does not contain the target's behaviour.
-The correct reading is therefore about regime, not rank: zero-shot
-conditioning is the only option during the first weeks of deployment, before
+The correct reading is therefore about regime, not rank: fingerprint-conditioned
+transfer is the only option during the first weeks of deployment, before
 any fine-tuning history exists, and it is trustworthy exactly when the
 practitioner can match pretraining chemistry and corpus breadth to the
 deployment population, precisely the condition a battery manufacturer
@@ -307,10 +314,10 @@ qualifying one product line can guarantee.
 \subsubsection{Chemistry mismatch reduces accuracy gains and destroys
 calibration}
 Across the four cross-chemistry scenarios (C to F), hybrid improvement ranges
-from 8.9\% to 59.5\% (mean 33.3\%), against 38.6\% to 64.5\% (mean
-54.0\%) for the adequately resourced matched-LFP scenarios (A, B, G, H).
+from 0.2\% to 58.9\% (mean 31.3\%), against 41.5\% to 70.7\% (mean
+55.7\%) for the adequately resourced matched-LFP scenarios (A, B, G, H).
 The sharper signal is calibration: the PI coverage analysis from
-Section~\ref{sec:solution} (82\% LFP$\rightarrow$LFP vs 43\%
+Section~\ref{sec:solution} (80.8\% LFP$\rightarrow$LFP vs 43.6\%
 LFP$\rightarrow$LCO) shows that the RMSE improvement metric understates the
 damage from chemistry mismatch.
 The model can remain reasonably accurate in point estimates while becoming

@@ -126,9 +126,9 @@ own deployment setting.
         For applications requiring earlier prediction (e.g., first 10 cycles),
         shorter window studies would be needed.
 
-  \item \textit{Residual calibration gap}: Even after split-conformal
-        correction, coverage reaches 93.9\%, not the nominal 95\%, and two
-        extreme cells (001-8, 003-5) remain substantially under-covered.
+  \item \textit{Residual calibration gap}: Even after conformal
+        recalibration, coverage remains slightly below the nominal 95\%, and two
+        extreme cells (001-8, 003-5) remain substantially under-covered.% TODO(C12/C13): insert exact grouped-conformal coverage once recomputed.
         Conformal guarantees assume exchangeability between calibration and
         test cells, which manufacturing outliers violate by definition;
         detecting such cells online (e.g.\ from interval-width anomalies)
