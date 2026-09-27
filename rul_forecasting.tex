@@ -9,15 +9,43 @@ error over the horizon and, once a cell enters nonlinear accelerated ageing, ten
 extrapolate the last observed near-linear slope and miss the knee. On the SIT cells this
 failure is severe. The recursive lineage forecasts an RUL for only 38\% to 86\% of the cells
 that reach EOL, and it abstains on the very cells that matter, the fast-failing G1
-cells 001-8 and 101-3 that carry the manufacturing defect.
+cells 001-8 and 101-3 that carry the early-life defect.
+
+\textbf{Evaluation population and censoring.} Of the 20 SIT cells, 12 reach the 0.80 EOL
+threshold within the observation window and 8 do not. The latter eight (001-2, 001-5, 001-6,
+001-7, 002-1, 002-2, 002-3, and 002-5) are right-censored: each still holds an SOH between 0.85
+and 0.92 at the end of its record, so its true RUL is known only to exceed the observed span.
+All RUL error statistics in this section are therefore computed on the 12 cells that reach EOL,
+since a censored cell has no ground-truth RUL against which to score a forecast. The foundation
+model nonetheless returns a forecast for every censored cell, in each case placing the first
+0.80 crossing 190 to 324 cycles beyond the forecasting anchor, consistent with their shallow
+fade, and never inside the already-observed span.
 
 \subsection{Direct trajectory decoding}\label{sec:rul_direct}
 We extend the hybrid with a direct multi-horizon decoder that predicts the whole remaining SOH
 trajectory in a single forward pass, which removes the iterative feedback and its error
 accumulation~\cite{seq2seq_rul, batterymformer}. The pretrained encoder, comprising the
 early-life fingerprint and the observed window, is retained unchanged. A compact decoder head
-outputs the SOH at a fixed set of future horizons up to 600 cycles, and the RUL is read as the
-first horizon that crosses 0.80. We keep the decoder deliberately simple. On the 20-cell target
+outputs the predicted SOH at 14 fixed horizons, namely 10, 20, 30, 40, 50, 75, 100, 150, 200,
+250, 300, 400, 500, and 600 cycles ahead of the forecasting anchor, and the RUL is read as the
+first horizon at which the predicted curve reaches 0.80.
+
+\textbf{Decoder specification.} The head takes the concatenation of the LSTM encoding of the
+last $W=20$ observed cycles and the 16-dimensional early-life fingerprint, passes it through one
+hidden layer of 64 ReLU units with dropout 0.2, and emits the 14 horizon values through a linear
+layer. It is trained with a plain mean-squared-error loss applied equally across the 14 horizons,
+with no horizon-dependent weighting, at an Adam learning rate of $10^{-3}$. Training targets are
+the observed SOH at each horizon, with horizons that extend past a cell's record padded by its
+final observed value. At inference the crossing cycle is obtained by linear interpolation between
+the two horizons that bracket 0.80; when no horizon reaches 0.80 the model reports no crossing
+rather than extrapolating a slope. We do not enforce monotonic degradation: each horizon is
+predicted independently and the curve is only clipped to the interval 0 to 1.2, so a nonmonotone
+prediction is admissible, though it did not affect the reported crossings. Uncertainty follows
+from 30 Monte Carlo Dropout passes; the point RUL is read from the median curve and the 80\%
+interval from the 10th and 90th percentiles of the per-pass crossings, reported only when at
+least a third of the passes produce a crossing.
+
+We keep the decoder deliberately simple. On the 20-cell target
 set, richer architectures overfit and lose coverage: an encoder-decoder LSTM with attention
 reaches an RUL error of 96 and 43 cycles at the 30\% and 50\% anchors with coverage 79\%, and a
 transformer self-attention encoder reaches 95 and 72 cycles, whereas the compact decoder reaches
