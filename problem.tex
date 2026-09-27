@@ -1,14 +1,14 @@
 Before introducing the hybrid model, we use the SIT cells to characterise the
 problem landscape: we establish the DE-LSTM baseline, show that the standard
 one-step evaluation protocol saturates on these data, quantify the
-manufacturing-variability error floor, and examine how training-run variance
-confounds cross-condition comparisons.
+cell-to-cell variability that limits pooled prediction, and examine how
+training-run variance confounds cross-condition comparisons.
 
 \subsection{Baseline Performance on the SIT Cells}\label{sec:baseline}
 
 Figure~\ref{fig:sit_overview} shows the SOH trajectories for all 20 cells.
 Within G1 (identical conditions), final SOH spans 0.067 to 0.885 (a
-13.2$\times$ ratio), illustrating the scale of manufacturing variability.
+13.2$\times$ ratio), illustrating the scale of cell-to-cell variability.
 G2 cells (elevated temperature) show consistently high residual SOH
 (0.660 to 0.924), suggesting the 40\,\textcelsius\ chamber protocol did not
 accelerate degradation within the test duration.
@@ -141,9 +141,9 @@ usable history, quantifying uncertainty honestly, and transferring across
 operating regimes and chemistries, the capabilities evaluated in
 Section~\ref{sec:results}.
 
-\subsection{Manufacturing Variability and the Two-Sided Failure Mode}\label{sec:variability}
+\subsection{Cell-to-Cell Variability and the Two-Sided Failure Mode}\label{sec:variability}
 
-We examine manufacturing variability from three angles: how predictable each
+We examine this cell-to-cell variability from three angles: how predictable each
 cell is on its own, what happens when a model is pooled across cells, and whether
 early-life data can identify the problem cells in advance.
 
@@ -341,7 +341,7 @@ two baselines answer different questions and should not be compared directly.
 The preceding results expose why no single-cell predictor stands out on SIT and
 what a better model must instead provide.
 The limiting factor is not the sequence model or its hyperparameters but
-manufacturing variability between cells.
+cell-to-cell variability.
 Under nominally identical G1 conditions, per-cell optimised DE-LSTM RMSE still
 varies ${\sim}5\times$ across the ten cells
 (Section~\ref{sec:baseline}), because a model trained on the early portion of a
@@ -367,5 +367,5 @@ degradation prior broad enough to recognise extreme trajectories, prediction
 for cells with little or no usable history, and honest uncertainty estimates.
 The hybrid model provides the first through pretraining on a large, diverse LFP
 corpus (Section~\ref{sec:datasets}), the second through an early-life
-fingerprint encoder that enables zero-shot prediction, and the third through
-MC-Dropout with conformal calibration.
+fingerprint encoder that enables prediction without target-cell fine-tuning,
+and the third through MC-Dropout with conformal calibration.

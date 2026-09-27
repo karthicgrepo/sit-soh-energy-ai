@@ -31,8 +31,9 @@ operated across a wide range of temperatures and charge and discharge rates.
 Crucially, cells that are nominally identical, built to the same design on the
 same production line, can age very differently because of small, unavoidable
 variations introduced during manufacturing~\cite{birkl2017degradation}.
-This manufacturing variability is largely absent from the hand-picked, smoothly
-degrading cells that populate standard benchmarks, yet it is precisely what a
+This cell-to-cell variability, of which manufacturing spread is a likely
+contributor, is largely absent from the hand-picked, smoothly degrading cells
+that populate standard benchmarks, yet it is precisely what a
 manufacturer or fleet operator must contend with: warranties, safety margins,
 and replacement schedules all depend on predicting the life of each individual
 cell, not an average one.
@@ -58,7 +59,7 @@ deployment reality.
 Using an 18-month dataset of 20 large-format LiFePO$_4$ prismatic cells
 (50\,Ah) cycled under three temperature and C-rate
 conditions~\cite{ponnambalam2026sitdata}, we set out to establish how far
-manufacturing variability, rather than model choice, governs prediction on
+cell identity, rather than model choice, governs prediction on
 industrial-format cells, and to determine what a prediction method must provide
 to be useful once these cells are deployed.
 In place of a single accuracy score, we take as our goal a model that can

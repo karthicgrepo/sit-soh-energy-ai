@@ -93,8 +93,8 @@ This paper makes the following key contributions:
         model (MIT LFP pretraining, convolutional fingerprint encoder,
         MC-Dropout uncertainty) and conduct a full ablation study isolating
         each component's contribution.
-        The hybrid predicts new cells zero-shot from 30 cycles with no
-        target-cell training (38\% better than scratch) and achieves a 53.5\%
+        The hybrid predicts new cells from 30 cycles with no target-cell
+        fine-tuning (38\% better than scratch) and achieves a 53.5\%
         mean RMSE improvement over scratch with fine tuning, on all 17 of 17
         test cells; it is the only evaluated method that quantifies
         uncertainty, reaching 94\% empirical coverage after split-conformal
@@ -105,16 +105,16 @@ This paper makes the following key contributions:
         that makes the pipeline reliably reproducible
         (Section~\ref{sec:selection}).
 
-  \item \textbf{Chemistry-alignment principle with multi-dataset validation}:
+  \item \textbf{Chemistry-alignment effect with multi-dataset validation}:
         We demonstrate that MC-Dropout uncertainty calibration transfers between
         datasets only when pretraining and deployment chemistries are matched
         (LFP$\rightarrow$LFP: 82\% coverage; LFP$\rightarrow$LCO: 43\%
         coverage).
         A ten-scenario cross-dataset experiment spanning three LFP datasets
-        (MIT, SIT, LISHEN 40\,Ah) and one LCO dataset confirms this principle
+        (MIT, SIT, LISHEN 40\,Ah) and one LCO dataset confirms this effect
         and shows that fine tuning is the dependable adaptation mechanism
-        across chemistries, while zero-shot fingerprint conditioning provides
-        its distinctive value before any adaptation is possible, yielding a
+        across chemistries, while fingerprint conditioning without fine-tuning
+        provides its distinctive value before any adaptation is possible, yielding a
         practical guideline for transfer learning in BMS applications
         (Sections~\ref{sec:cross_dataset} and~\ref{sec:discussion}).
 

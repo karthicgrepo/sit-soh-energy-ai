@@ -3,10 +3,11 @@ absent from small-cell laboratory benchmarks, using a new 18-month dataset of 20
 large-format LiFePO$_4$ prismatic cells (50\,Ah) cycled under three operating
 conditions.
 
-Its central message is that on large-format cells manufacturing variability, not
-algorithm choice, dominates prediction error, and that because one-step accuracy
-on their smooth trajectories saturates, models should be judged by the deployment
-capabilities they add rather than by one-step rank. We therefore report trivial
+Its central message is that on large-format cells the cell identity, not
+algorithm choice, explains most of the prediction-error variation, and that
+because one-step accuracy on their smooth trajectories saturates, models should
+be judged by the deployment capabilities they add rather than by one-step rank.
+We therefore report trivial
 baselines and multi-run variance as standard practice.
 
 Guided by this, our hybrid model (MIT LFP pretraining, a convolutional
@@ -26,7 +27,7 @@ neutralise it with a calibration-cell selection protocol, in a fully
 deterministic, byte-for-byte reproducible pipeline.
 
 Building on the same model, we demonstrated two further capabilities aimed
-directly at manufacturing variability: an early screen that flags defective cells
+directly at cell-to-cell variability: an early screen that flags defective cells
 from the discharge voltage curve well before the capacity trajectory reveals
 them, and a full-coverage probabilistic RUL forecaster that, through a direct
 multi-horizon decoder and a 155-cell LFP foundation corpus, forecasts every cell

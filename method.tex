@@ -215,11 +215,11 @@ are compared:
         hyperparameter search. This is the ablation control for the hybrid and is
         distinct from the DE-optimised DE-LSTM baseline of
         Section~\ref{sec:baseline}; the two therefore differ in RMSE.
-  \item \textbf{Zero-shot (pretrain + fingerprint, no fine tuning)}: the MIT
+  \item \textbf{Fingerprint-conditioned transfer (pretrain + fingerprint, no fine tuning)}: the MIT
         pretrained model with the fingerprint-derived initial state applied
         directly to the target cell, with \textit{no fine tuning} on target
-        data (here \textit{zero-shot} denotes the absence of target-cell fine
-        tuning; the first 30 cycles are still used to compute the fingerprint).
+        data (the only target-cell information used is the first 30 cycles, from
+        which the fingerprint is computed; no target SOH label is fitted).
         Isolates the value of pretraining and the fingerprint before any
         target-cell adaptation.
   \item \textbf{Pretrain + fine tune (no fingerprint)}: MIT pretrained
