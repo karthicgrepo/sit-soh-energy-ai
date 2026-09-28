@@ -325,3 +325,31 @@ The model can remain reasonably accurate in point estimates while becoming
 severely overconfident in its uncertainty intervals, the failure mode most
 dangerous for BMS deployment, and one invisible to every uncertainty-free
 method in Table~\ref{tab:method_comparison}.
+
+\subsection{Deployment-Realistic Evaluation}\label{sec:deployment}
+
+The 30/50/70\% splits of Section~\ref{sec:eval} are retrospective: each presupposes
+the cell's full lifetime. To match how the model is actually used, we re-evaluate
+under fixed early-life budgets, fine-tuning on only the first 30, 50, 100, or 200
+cycles and predicting the remainder. Table~\ref{tab:budget} shows the hybrid improves
+over the equally-budgeted scratch LSTM at every budget, by 13\% to 37\% mean per-cell
+RMSE on the 17 test cells. The gain is present already at the smallest budget, a 37\%
+reduction from only the first 30 cycles, which is the regime that matters for a newly
+commissioned cell with no usable history and where a retrospective split would not
+apply.
+
+\begin{table}[htbp]
+\centering
+\caption{Fixed early-life budget evaluation.}\label{tab:budget}
+\small
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}rrrr}
+\toprule
+Budget (cycles) & Hybrid RMSE & Scratch RMSE & Improvement \\
+\midrule
+30  & 0.031 & 0.045 & 37.1\% \\
+50  & 0.031 & 0.043 & 34.0\% \\
+100 & 0.031 & 0.043 & 13.3\% \\
+200 & 0.024 & 0.040 & 35.7\% \\
+\bottomrule
+\end{tabular*}
+\end{table}
