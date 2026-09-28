@@ -95,6 +95,8 @@ TCN         & $0.1078$ & $0.1017$ & $0.1089$ \\
 Transformer & $0.1681$ & $0.1130$ & $0.1001$ \\
 \midrule
 \multicolumn{4}{@{}l}{\textit{Trivial baselines}} \\
+Persistence ($\hat{y}_t=y_{t-1}$) & $0.0123$ & $0.0128$ & $0.0134$ \\
+Drift ($\hat{y}_t=2y_{t-1}-y_{t-2}$) & $0.0210$ & $0.0219$ & $0.0228$ \\
 Linear AR & $\mathbf{0.0068}$ & $\mathbf{0.0052}$ & $\mathbf{0.0052}$ \\
 Cubic curve fit & $1.499$ & $0.158$ & $0.088$ \\
 \bottomrule
@@ -111,7 +113,10 @@ Cubic curve fit & $1.499$ & $0.158$ & $0.088$ \\
 Table~\ref{tab:method_comparison} shows that the one-step protocol is
 saturated on these data: a \textbf{20-cycle linear autoregressor attains the
 lowest error at every split}, on par with or ahead of all six deep models, and
-among the deep models themselves no consistent ranking emerges (PA-LSTM leads at
+even a \textbf{memoryless persistence predictor} ($\hat{y}_t=y_{t-1}$, RMSE
+0.013 at 50\%) matches the best deep model (DE-LSTM, 0.0118) and beats the
+proposed hybrid (0.0156) on this metric. Among the deep models themselves no
+consistent ranking emerges (PA-LSTM leads at
 30\%, DE-LSTM at 50\% and 70\%, in sharp contrast to the NASA benchmark where
 DE-LSTM reduces RMSE by \mbox{85 to 91\%} over PA-LSTM and
 GA-LSTM~\cite{ponnambalam2026delstm}).
