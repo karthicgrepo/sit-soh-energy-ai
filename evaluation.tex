@@ -161,32 +161,33 @@ drive the result.
 \subsubsection{Conformal Calibration of the Uncertainty
 Intervals}\label{sec:conformal}
 
-% TODO(C12/C13): the coverage figures in this subsection (raw ladder 41/68/78/84/91,
-% and the 84.4->93.9 split-conformal result) are from the pre-C10 checkpoint and a
-% single calibration/selection split. They will be replaced by GROUPED/CROSS-conformal
-% numbers on the new cell-disjoint checkpoint, with model-selection cells separated from
-% calibration cells (raw nominal-95 MC coverage is now 80.8% on the 17 test cells).
 The raw MC-Dropout intervals are approximate (Section~\ref{sec:hybrid_arch})
 and under-cover in practice: pooled over the 17 test cells, the empirical
-coverage of nominal 50/80/90/95/99\% intervals is 41/68/78/84/91\%
+coverage of nominal 50/80/90/95/99\% intervals is 47/74/79/82/88\%
 (Figure~\ref{fig:calibration}, left).
-We correct this with split-conformal prediction~\cite{angelopoulos2021gentle}
-using the three calibration cells already reserved for checkpoint selection:
-the normalised scores $|y_t-\hat{y}_t|/\hat{\sigma}_t$ are collected on the
-calibration cells, their 95th percentile $q_{95}$ replaces the Gaussian 1.96,
-and test-cell intervals become $\hat{y}_t \pm q_{95}\,\hat{\sigma}_t$.
-This raises 95\% coverage from 84.4\% to \textbf{93.9\%} on the test cells
-with no target-cell labels beyond the calibration set
-(Figure~\ref{fig:calibration}, right).
-Coverage reaches at least 92\% on 15 of 17 cells; the two exceptions are the
-catastrophic degrader 001-8 (67\%) and the recovery artefact 003-5 (56\%),
-whose error distributions differ structurally from anything in the
-calibration set, a reminder that conformal guarantees assume
-exchangeability, which extreme manufacturing outliers violate.
+We recalibrate with conformal prediction~\cite{angelopoulos2021gentle}, and two
+design choices matter. First, the cells used to select the pretraining checkpoint
+must not also calibrate the intervals, so we exclude the three selection cells
+from calibration. Second, hundreds of cycles from one cell are not independent
+samples: the residuals within a cell are strongly correlated, so we treat the
+cell, not the cycle, as the exchangeable unit and use grouped, leave-one-cell-out
+conformal, taking one normalised nonconformity score $|y_t-\hat{y}_t|/\hat{\sigma}_t$
+quantile per cell and calibrating each test cell against the others.
+Under this honest protocol the intervals attain at least their nominal coverage,
+reaching 91\% at nominal 80\% and 100\% at nominal 95\%. The over-coverage is
+expected: only sixteen cells calibrate each quantile, so the finite-sample
+conformal correction is conservative and the intervals are correspondingly wide.
+For reference, the naive alternative that calibrates on the three selection cells
+reports a tighter 98\% at nominal 95\%, but it reuses the selection data and its
+apparent tightness is not trustworthy.
+Coverage is weakest on the two structurally atypical cells, the catastrophic
+degrader 001-8 and the recovery artefact 003-5, whose error distributions differ
+from anything in the calibration set, a reminder that conformal guarantees assume
+exchangeability, which extreme outliers violate.
 The full hybrid is the only method in Table~\ref{tab:method_comparison} that
-produces uncertainty intervals at all; with conformal correction those
-intervals become trustworthy enough for BMS threshold logic on typical cells,
-while flagged outliers still require conservative handling.
+produces uncertainty intervals at all; recalibrated this way they are conservative
+but honest for BMS threshold logic, while flagged outliers still require
+special handling.
 
 \begin{figure}[htbp]
 \centering
