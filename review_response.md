@@ -45,19 +45,18 @@ Done. We renamed it "fingerprint-conditioned transfer (no target-cell fine-tunin
 throughout, and state exactly what target information is used (the first 30 cycles,
 from which the fingerprint is computed; no target SOH label is fitted).
 
-**C7 — What SOH is observable in a BMS? [finalizing]**
-Addressed with a new experiment. We add an intermittent-observation study: the true
-SOH is supplied only every k cycles (k = 1, 5, 10, 25) and the model self-feeds
-otherwise. One-step RMSE degrades sharply as the gap grows (0.010, 0.048, ..., 0.283
-from the pilot), which we report honestly: the one-step "deployment" claim holds only
-under frequent SOH estimation, and we now state this assumption explicitly and add a
-deployment-observability subsection. Final numbers from the 20-cell run are being
-written in.
+**C7 — What SOH is observable in a BMS?**
+Done. New intermittent-observation study (Section 7.6): the true SOH is supplied only
+every k cycles (k = 1, 5, 10, 25) and the model self-feeds otherwise. Mean one-step
+RMSE over the 17 test cells rises from 0.015 (k=1) to 0.055, 0.114 and 0.202 (k=5, 10,
+25). We state honestly that the one-step accuracy holds only under frequent SOH
+estimation, and that the trajectory-level RUL forecaster (Section 9), which predicts
+from a single early anchor, is what serves the sparse-observation regime.
 
-**C8 — Add fixed-cycle budgets (30/50/100/200), not just retrospective %. [finalizing]**
-Done as an experiment. We evaluate hybrid vs scratch trained on the first
-30/50/100/200 cycles; the hybrid retains a clear advantage at every fixed budget.
-Final table from the 20-cell run is being written in (Section 7).
+**C8 — Add fixed-cycle budgets (30/50/100/200), not just retrospective %.**
+Done (Section 7.5, new table). Hybrid vs scratch trained on the first 30/50/100/200
+cycles: the hybrid improves at every budget by 37/34/13/37% mean per-cell RMSE on the
+17 test cells, including 37% from only the first 30 cycles.
 
 **C9 — "irreducible within-cell variance" is incorrect.**
 Done. Reworded: 3.6% is the residual not captured by that particular cubic fit; we
@@ -87,15 +86,15 @@ attains at least nominal coverage but conservatively (91% at nominal 80%, 100% a
 95%), because only ~16 cells calibrate the quantile. The previous 93.9% (split
 conformal on the selection cells) is removed as it reused the selection data.
 
-**C14 — Reassess what the fingerprint contributes (shuffled ~ correct). [finalizing]**
-Done as an experiment, and the result is decisive: with the correct, zero,
-population-mean, shuffled, and random fingerprints, the fine-tuned model gives
-identical RMSE (0.0101) and identical coverage (0.856) in the pilot. The fingerprint
-is effectively inert: the trained encoder maps every cell to a near-constant
-embedding (mean pairwise cosine similarity ~1.0 across the MIT cells). We now state
-plainly that the mechanism is an in-distribution population prior, not cell-specific
-identification, and we removed all claims to the contrary. Final controls on the
-full run are being written in.
+**C14 — Reassess what the fingerprint contributes (shuffled ~ correct).**
+Done, and the result is decisive (Section 7.1, new control table). Across the correct,
+zero, population-mean, shuffled and random fingerprints the fine-tuned model gives
+indistinguishable RMSE (0.0149 to 0.0156) and coverage (80 to 82%); the correct
+fingerprint is if anything marginally worse than the controls. The trained encoder
+maps every cell to a near-constant embedding (mean pairwise cosine similarity ~1.0
+across the MIT cells). We now state plainly that the mechanism is an in-distribution
+population prior, not cell-specific identification, and we removed all claims to the
+contrary (this also resolves C15).
 
 **C15 — Do not say the fingerprint "identifies the type of degrader."**
 Done. Removed; the fingerprint's role is reframed per C14. The methodology table now

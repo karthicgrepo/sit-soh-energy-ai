@@ -200,9 +200,10 @@ The fingerprint encoder, by contrast, conditions the LSTM on the early-life
 trajectory shape (curvature and rate of decline across the first 30 cycles),
 placing the prediction in the context of the pretrained population.
 Whether this conditioning encodes precise cell \emph{identity} or a more
-generic in-distribution prior is an empirical question; a shuffled-fingerprint
-control in Section~\ref{sec:results} shows the latter dominates, and we
-interpret the mechanism accordingly.
+generic in-distribution prior is an empirical question; the fingerprint control
+study in Section~\ref{sec:fp_control} settles it clearly in favour of the latter,
+as zero, mean, shuffled and random fingerprints all match the correct one, and we
+interpret the mechanism as population conditioning accordingly.
 
 \subsection{Ablation Study Design}\label{sec:ablation_design}
 

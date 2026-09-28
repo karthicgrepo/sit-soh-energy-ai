@@ -65,6 +65,38 @@ Prediction-interval coverage improves in the same monotone order
 well-selected pretrained checkpoint there is no accuracy versus calibration
 trade-off among the configurations.
 
+\subsubsection{What the fingerprint actually contributes}\label{sec:fp_control}
+To test whether the fingerprint encodes cell-specific information or merely a
+population prior, we fine-tune and predict with five fingerprint variants: the
+correct cell fingerprint, a zero vector, the population-mean fingerprint, a
+shuffled fingerprint (another cell's), and a random fingerprint. Table~\ref{tab:fp}
+shows all five give indistinguishable accuracy (RMSE 0.0149 to 0.0156) and coverage
+(80 to 82\%); the correct fingerprint is, if anything, marginally worse than the
+controls. A direct check of the encoder confirms the reason: across the MIT cells the
+embeddings have a mean pairwise cosine similarity of essentially 1.0, so the trained
+encoder maps every cell to a near-constant vector. The fingerprint therefore carries
+no cell-specific information; it acts as an in-distribution population prior, placing
+the LSTM in the pretrained regime, rather than identifying the individual cell. We
+report this openly and, throughout, describe the mechanism as population conditioning
+rather than cell-specific fingerprinting.
+
+\begin{table}[htbp]
+\centering
+\caption{Fingerprint control study (50\% split, 17 test cells).}\label{tab:fp}
+\small
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrr}
+\toprule
+Fingerprint & RMSE & PI coverage \\
+\midrule
+Correct (this cell)      & 0.0156 & 80.2\% \\
+Population mean          & 0.0149 & 81.3\% \\
+Shuffled (another cell)  & 0.0149 & 81.4\% \\
+Random                   & 0.0149 & 81.4\% \\
+Zero                     & 0.0149 & 81.5\% \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
 \subsubsection{Hybrid Accuracy Across Operating Conditions}
 
 \begin{table}[htbp]
@@ -353,3 +385,16 @@ Budget (cycles) & Hybrid RMSE & Scratch RMSE & Improvement \\
 \bottomrule
 \end{tabular*}
 \end{table}
+
+\subsubsection{Intermittent SOH observation}\label{sec:intermittent}
+The one-step results assume the true SOH is available at every cycle. In a battery
+management system the discharge capacity, and hence SOH, may be estimated only
+intermittently. We therefore supply the observed SOH only every $k$ cycles and let
+the model feed its own prediction back between observations. Mean one-step RMSE over
+the 17 test cells rises from 0.015 at $k=1$ to 0.055, 0.114, and 0.202 at $k=5$, 10,
+and 25. The near-persistence accuracy of the one-step benchmark therefore holds only
+under frequent SOH estimation; as the observation gap widens the errors compound
+through the self-fed window. This is a further reason the one-step metric is not the
+right basis for judging deployment value, and it motivates the trajectory-level
+remaining-useful-life forecaster of Section~\ref{sec:rul}, which predicts from a
+single early-life anchor and does not require per-cycle SOH.
