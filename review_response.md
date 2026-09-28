@@ -1,0 +1,154 @@
+# Response to Reviewer (Dr Anurag Sharma), 21 September 2026
+
+We thank the reviewer for the detailed and constructive comments. They materially
+improved the paper. Below we respond point by point. Section and table references
+are to the revised manuscript (now prepared for *Energy and AI*, elsarticle format).
+The most consequential change is a correction to the pretraining split (C10), which
+we re-ran end to end; we report the before/after numbers honestly wherever they moved.
+
+Items marked **[finalizing]** are complete as experiments and are being written into
+the manuscript from the just-completed re-run; their results are stated here.
+
+---
+
+**C1 — Lead with the saturation finding; restructure abstract/contributions/discussion/conclusion.**
+Done. The abstract, title, research-gap and discussion now lead with benchmark
+saturation and cell-to-cell variation, and frame the hybrid as a deployment
+capability set rather than a one-step winner. New title: "Beyond One-Step Accuracy:
+Deployment-Oriented Health Prediction for Large-Format LiFePO4 Cells." The abstract
+follows the structure you suggested.
+
+**C2 — "manufacturing variability" overclaims causation.**
+Done. We use "cell-to-cell variability" as the phenomenon label throughout the main
+results and headings, and mention manufacturing only as a likely contributor
+alongside cycler-channel, contact-resistance, temperature and batch effects
+(Section 4.1, 5.3).
+
+**C3 — Abstract dominance claim too strong.**
+Done. We now state that cell identity explains substantially more prediction-error
+variance than model choice (58/31/25% vs 15-17%), not that manufacturing "dominates."
+
+**C4 — 13.2x final-SOH spread is unfair (different cycle counts).**
+Done. New matched-exposure analysis (Section 5.3): the G1 spread is 7.6x at a common
+cycle count (684 cycles) and 13.7x at common cumulative throughput (26.8 kAh), versus
+13.2x at final SOH. The dispersion is an order of magnitude under every fair
+comparison, so it is genuine, not an artefact of unequal durations.
+
+**C5 — Add persistence (and drift) baselines.**
+Done, and it strengthens the argument. Persistence (yhat=y_{t-1}) reaches RMSE
+0.0128 at the 50% split, which beats the proposed hybrid (0.0156) and nearly matches
+the best deep model (DE-LSTM 0.0118) on the one-step metric. Drift (0.021-0.023)
+overshoots. Both are added to Table 3 and the saturation discussion (Section 5.2).
+
+**C6 — "zero-shot" is misleading.**
+Done. We renamed it "fingerprint-conditioned transfer (no target-cell fine-tuning)"
+throughout, and state exactly what target information is used (the first 30 cycles,
+from which the fingerprint is computed; no target SOH label is fitted).
+
+**C7 — What SOH is observable in a BMS? [finalizing]**
+Addressed with a new experiment. We add an intermittent-observation study: the true
+SOH is supplied only every k cycles (k = 1, 5, 10, 25) and the model self-feeds
+otherwise. One-step RMSE degrades sharply as the gap grows (0.010, 0.048, ..., 0.283
+from the pilot), which we report honestly: the one-step "deployment" claim holds only
+under frequent SOH estimation, and we now state this assumption explicitly and add a
+deployment-observability subsection. Final numbers from the 20-cell run are being
+written in.
+
+**C8 — Add fixed-cycle budgets (30/50/100/200), not just retrospective %. [finalizing]**
+Done as an experiment. We evaluate hybrid vs scratch trained on the first
+30/50/100/200 cycles; the hybrid retains a clear advantage at every fixed budget.
+Final table from the 20-cell run is being written in (Section 7).
+
+**C9 — "irreducible within-cell variance" is incorrect.**
+Done. Reworded: 3.6% is the residual not captured by that particular cubic fit; we
+no longer call it irreducible (Section 5.3).
+
+**C10 — Make the pretraining split cell-disjoint.**
+Done, and re-run end to end. Both the main pretraining and the cross-dataset
+pretraining now partition whole cells into train/validation folds before windowing
+(previously a flat tail slice let one cell straddle the boundary). The checkpoint,
+all downstream tables/figures, and the Zenodo artefact are reissued. Numbers moved as
+expected and we report before/after: fingerprint-transfer improvement 38.2% -> 23.3%,
+full hybrid 53.5% -> 51.1%, checkpoint-selection robustness 95.5% -> 100%. The drop in
+the no-fine-tuning number is informative (see C14).
+
+**C11 — Use "prediction interval," not "confidence interval."**
+Done throughout (text, tables, figures).
+
+**C12 — Do not use the same cells for checkpoint selection and calibration.**
+Done. The three selection cells are now excluded from conformal calibration
+(Section 7.3).
+
+**C13 — Hundreds of cycles from one cell are not independent calibration samples.**
+Done. We switched to grouped, leave-one-cell-out conformal, taking one nonconformity
+score per cell so correlated within-cell residuals are not counted as independent.
+Honest coverage: raw MC-Dropout under-covers (82% at nominal 95%); grouped conformal
+attains at least nominal coverage but conservatively (91% at nominal 80%, 100% at
+95%), because only ~16 cells calibrate the quantile. The previous 93.9% (split
+conformal on the selection cells) is removed as it reused the selection data.
+
+**C14 — Reassess what the fingerprint contributes (shuffled ~ correct). [finalizing]**
+Done as an experiment, and the result is decisive: with the correct, zero,
+population-mean, shuffled, and random fingerprints, the fine-tuned model gives
+identical RMSE (0.0101) and identical coverage (0.856) in the pilot. The fingerprint
+is effectively inert: the trained encoder maps every cell to a near-constant
+embedding (mean pairwise cosine similarity ~1.0 across the MIT cells). We now state
+plainly that the mechanism is an in-distribution population prior, not cell-specific
+identification, and we removed all claims to the contrary. Final controls on the
+full run are being written in.
+
+**C15 — Do not say the fingerprint "identifies the type of degrader."**
+Done. Removed; the fingerprint's role is reframed per C14. The methodology table now
+asks "what is this cell's early-life degradation signature?" rather than claiming
+degrader-type identification.
+
+**C16 — "chemistry alignment principle" is too strong.**
+Done. Renamed "chemistry-alignment effect" throughout and softened to note the
+datasets also differ in format, manufacturer, laboratory and protocol.
+
+**C17 — Update the literature; cite recent cross-dataset transfer work incl. attached paper. [in progress]**
+In progress. We are adding Zhang et al., "Cross-dataset battery life forecasting with
+time-series foundation models," Energy and AI 25 (2026) 100771, and recent
+cross-chemistry transfer studies, and sharpening the novelty statement to what is
+specifically different here rather than "not previously investigated."
+
+**C18 — RUL: report censored cells and how methods behave on them.**
+Done. 12 of 20 cells reach the 0.80 EOL threshold; 8 are right-censored (001-2,5,6,7;
+002-1,2,3; 002-5), still at SOH 0.85-0.92. Error statistics are computed on the 12
+EOL cells; the foundation model still forecasts every censored cell, placing the
+crossing 190-324 cycles beyond the anchor and never inside the observed span
+(Section 9).
+
+**C19 — Show RUL error together with coverage (risk-vs-coverage). [in progress]**
+In progress; adding a risk-versus-coverage plot from the existing benchmark table so a
+method that forecasts only easy cells is not credited over one that covers all cells.
+
+**C20 — Under-specified RUL decoder.**
+Done. Full specification added (Section 9.1): 14 horizons (10-600 cycles), equal-weight
+MSE, Adam 1e-3, targets padded past record, linear interpolation for the 0.80 crossing,
+no-crossing handling (reports no crossing, no slope extrapolation), no monotonicity
+constraint, MC-Dropout 80% intervals.
+
+**C21 — Consolidated dataset table.**
+Done. New Table 1 lists SIT, MIT, NASA, LISHEN, HUST and SNL with chemistry, format,
+capacity, cell count, conditions and train/calibration/test role.
+
+**C22 — Figure and terminology inconsistencies.**
+Done. (a) The ablation baseline is named "Scratch LSTM" consistently. (b) NASA is
+labelled LCO everywhere (its assigned chemistry), correcting the earlier NMC label.
+(c) PI is used for predictive uncertainty throughout. (d) "fine-tuning,"
+"pretraining," "fingerprint-conditioned transfer" standardised.
+
+**C23 — Do not present 53.5% as better than all methods (push-back with agreement).**
+Agreed, and this was already scoped in the manuscript: the improvement (now 51%) is
+stated as "over the scratch baseline" in the abstract, ablation table, and conclusion.
+We have made it explicit in each place and removed any leaderboard reading.
+
+**C24 — State explicitly the hybrid is not meant to win the one-step benchmark (push-back with agreement).**
+Agreed, and now stated directly in the abstract, results and conclusion: the hybrid is
+not intended to win the saturated one-step benchmark; its value is transfer to new
+cells, uncertainty, early screening and RUL.
+
+**C25 — Reduce length by 15-20%. [in progress]**
+In progress as the final editing pass once the C7/C8/C14 results are written in, so the
+cut is made on the final structure.
