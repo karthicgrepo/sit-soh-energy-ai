@@ -8,7 +8,7 @@
 %% keywords overflow one page, and without it the ARTICLE INFO block collides
 %% with the Introduction. See the expl3 shim immediately below, which that
 %% option depends on.
-\documentclass[a4paper,fleqn,longmktitle]{cas-dc}
+\documentclass[a4paper,fleqn]{cas-dc}
 
 %% cas-common's \ProcessLongTitleBox (used only by longmktitle) calls
 %% \vbox_unpack_clear:N, which current l3kernel has removed in favour of
@@ -18,6 +18,25 @@
 \ExplSyntaxOn
 \cs_if_exist:NF \vbox_unpack_clear:N
   { \cs_new_eq:NN \vbox_unpack_clear:N \vbox_unpack_drop:N }
+
+%% cas-common's \printorcid emits the "ORCID(s):" footnote label even when no
+%% author declared one, leaving a dangling label on page one. Print it only
+%% when there is something to print. Delete this block once the authors add
+%% real identifiers, as \author[1]{Name}[orcid=0000-0000-0000-0000].
+\RenewDocumentCommand \printorcid { }
+  {
+    \seq_if_empty:NF \g_stm_orcid_seq
+      {
+        \group_begin:
+          \tex_let:D \thefootnote \relax \footnotetext
+            {
+              \raggedright
+              \textsc{orcid}(s):\c_space_token
+              \seq_use:Nn \g_stm_orcid_seq { ;~ }
+            }
+        \group_end:
+      }
+  }
 \ExplSyntaxOff
 
 %% Energy and AI uses numbered citations, [1], [2], with an Elsevier
@@ -33,6 +52,12 @@
 \usepackage{url}
 \usepackage{siunitx}
 \usepackage{xcolor}
+
+%% Narrow two-column measure leaves little room for justification, so a few
+%% lines were running past the column edge. microtype's character protrusion
+%% absorbs most of that. Font expansion must stay OFF: the stix and charis
+%% fonts cas-dc loads are not scalable, and pdfTeX makes that a fatal error.
+\usepackage[protrusion=true,expansion=false]{microtype}
 
 \setcounter{secnumdepth}{3}
 \graphicspath{{figures/}}
@@ -154,22 +179,20 @@ one-step errors, but developing models that adapt across cells, quantify uncerta
 identify abnormal degradation early, and provide reliable long-term forecasts.
 \end{abstract}
 
-%% Graphical abstract. CAS sets this beside the highlights on page one, which
-%% is the side-by-side HIGHLIGHTS / GRAPHICAL ABSTRACT band the journal prints.
-%% Elsevier also wants this uploaded as its own image file at submission.
-\begin{graphicalabstract}
-\includegraphics[width=\linewidth]{fig1_methodology.pdf}
-\end{graphicalabstract}
-
-%% Keep these five in sync with highlights.tex, which is uploaded as the
-%% separate Highlights file at submission.
-\begin{highlights}
-\item Large-format LFP cells show a 13x cell-to-cell spread under identical conditions
-\item One-step SOH forecasting saturates: a linear model matches deep networks
-\item Cell identity explains more prediction-error variance than model choice
-\item Fingerprint-conditioned transfer plus fine-tuning improve new-cell SOH prediction
-\item Calibrated uncertainty, early screening and RUL forecasting aid deployment
-\end{highlights}
+%% The graphicalabstract and highlights environments are DELIBERATELY not used
+%% here, so page one is the title page.
+%%
+%% In the published article those two sit side by side in a band under the
+%% journal masthead, but that band, the masthead, the DOI line and the
+%% copyright footer are all added by Elsevier during production. The author
+%% class cannot make them: cas-dc gives each environment a preliminary page of
+%% its own, which pushes the title page to page three.
+%%
+%% Elsevier collects both as separate uploads at submission anyway:
+%%   highlights.tex          -> the Highlights file
+%%   graphical_abstract.tex  -> the Graphical Abstract image
+%% Build those two separately and upload the PDFs. Keep highlights.tex in sync
+%% with any claim changes in the abstract.
 
 \begin{keywords}
 battery state of health \sep remaining useful life \sep LiFePO$_4$ \sep
