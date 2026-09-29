@@ -1,6 +1,28 @@
-%% Energy and AI (Elsevier) submission
-%% Migrated from the WileyNJDv5 reviewed version; content unchanged at migration time.
-\documentclass[review,times]{elsarticle}
+%% Energy and AI (Elsevier) submission.
+%% Elsevier CAS double-column class, matching the journal's published layout.
+%% Migrated from elsarticle on 2026-09-29; body content unchanged.
+%%
+%% Build: tectonic main.tex   (or: pdflatex -> bibtex -> pdflatex -> pdflatex)
+%% Class and bst come from the els-cas-templates bundle on CTAN.
+%% longmktitle is required: the abbreviation note plus abstract plus seven
+%% keywords overflow one page, and without it the ARTICLE INFO block collides
+%% with the Introduction. See the expl3 shim immediately below, which that
+%% option depends on.
+\documentclass[a4paper,fleqn,longmktitle]{cas-dc}
+
+%% cas-common's \ProcessLongTitleBox (used only by longmktitle) calls
+%% \vbox_unpack_clear:N, which current l3kernel has removed in favour of
+%% \vbox_unpack_drop:N. Restore the old name when it is absent, so the
+%% frontmatter builds on both old and new LaTeX kernels.
+\usepackage{expl3}
+\ExplSyntaxOn
+\cs_if_exist:NF \vbox_unpack_clear:N
+  { \cs_new_eq:NN \vbox_unpack_clear:N \vbox_unpack_drop:N }
+\ExplSyntaxOff
+
+%% Energy and AI uses numbered citations, [1], [2], with an Elsevier
+%% num-names reference list. natbib must be loaded with the numbers option.
+\usepackage[numbers]{natbib}
 
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -15,18 +37,21 @@
 \setcounter{secnumdepth}{3}
 \graphicspath{{figures/}}
 
-\journal{Energy and AI}
-
 \begin{document}
+\let\WriteBookmarks\relax
+\def\floatpagepagefraction{1}
+\def\textpagefraction{.001}
 
-\begin{frontmatter}
+\shorttitle{Deployment-Oriented Health Prediction for Large-Format LiFePO$_4$ Cells}
+\shortauthors{K. Ponnambalam et~al.}
 
-\title{Beyond One-Step Accuracy: Deployment-Oriented Health Prediction for
-       Large-Format LiFePO$_4$ Cells\\[2pt]
-       {\large Cell-to-Cell Variability, Transfer, and Calibrated Uncertainty}%
-       \tnoteref{abbr}}
+\title[mode = title]{Beyond One-Step Accuracy: Cell-to-Cell Variability,
+Transfer, and Calibrated Uncertainty in Deployment-Oriented Health Prediction
+for Large-Format LiFePO$_4$ Cells}
 
-\tnotetext[abbr]{\textbf{Abbreviations:}
+%% Unnumbered title note, so the abbreviation list does not hang a
+%% superscript marker off the title.
+\nonumnote{\textbf{Abbreviations:}
 AUC, Area Under the ROC Curve;
 BMS, Battery Management System;
 CNN, Convolutional Neural Network;
@@ -51,28 +76,79 @@ SIT, Singapore Institute of Technology;
 SOH, State of Health;
 ZS, Zero-Shot.}
 
-\author[nu]{Karthickumar Ponnambalam\corref{cor1}}
+\author[1]{Karthickumar Ponnambalam}
+\cormark[1]
 \ead{K.Ponnambalam2@newcastle.ac.uk}
-\author[sit]{Sivaneasan Balakrishnan}
-\author[nu]{Anurag Sharma}
-\author[nu]{Sze Sing Lee}
+\credit{Conceptualization, Methodology, Software, Formal analysis,
+Investigation, Data curation, Visualization, Writing - original draft}
+\affiliation[1]{organization={Newcastle University},
+            country={Singapore}}
 
-\affiliation[nu]{organization={Newcastle University}, country={Singapore}}
-\affiliation[sit]{organization={Singapore Institute of Technology}, country={Singapore}}
+\author[2]{Sivaneasan Balakrishnan}
+\credit{Resources, Data curation, Supervision, Writing - review and editing}
+\affiliation[2]{organization={Singapore Institute of Technology},
+            country={Singapore}}
 
-\cortext[cor1]{Corresponding author.}
+\author[1]{Anurag Sharma}
+\credit{Supervision, Validation, Writing - review and editing}
 
+\author[1]{Sze Sing Lee}
+\credit{Supervision, Writing - review and editing}
+
+\cortext[1]{Corresponding author.}
+
+%% The CAS abstract environment captures its body VERBATIM and writes it to
+%% \jobname.abs, so \input does not work inside it. The text must be literal.
+%% abstract.tex is kept as the editable source; paste changes back to here.
 \begin{abstract}
-\input{abstract}
+Accurate state-of-health (SOH) forecasting is important for battery management, yet
+most machine-learning studies are evaluated on small laboratory cells with rolling
+one-step-ahead prediction, where the model is continuously supplied with the latest
+observed SOH. This study examines whether such benchmarks reflect the challenges of
+large-format battery deployment. We analyse an 18-month dataset of 20 large-format
+50\,Ah LiFePO$_4$ prismatic cells tested under three operating conditions, together
+with several external battery datasets. Substantial cell-to-cell variation is
+observed even among nominally identical cells, while a comparison of six
+deep-learning models shows that conventional one-step forecasting is close to
+saturation: a simple linear autoregressive model performs as well as or better than
+the deep models, and cell identity explains substantially more prediction-error
+variance than model choice.
+
+These findings motivate a deployment-oriented framework that targets capabilities
+beyond one-step accuracy. The proposed hybrid model combines LFP pretraining, an
+early-life fingerprint encoder over the first 30 cycles, target-cell fine-tuning, and
+uncertainty estimation. Without target-cell fine-tuning, fingerprint-conditioned
+transfer reduces RMSE by 23\% relative to training from scratch, and subsequent
+fine-tuning increases the average reduction to 51\% over the same scratch baseline.
+The framework is further evaluated for uncertainty estimation, early identification
+of fast-degrading cells, cross-dataset transfer, and remaining-useful-life
+forecasting. Early-life voltage-curve features flag cells at risk of premature
+degradation with an AUC of 0.78, and the RUL model reaches a median error of 49
+cycles at the midlife forecasting point. The proposed hybrid is not intended to win
+the already-saturated one-step benchmark; its value is transfer to a new cell,
+uncertainty estimation, early screening, and long-term forecasting. Overall, the main
+challenge in large-format battery prognostics is not further reducing already-small
+one-step errors, but developing models that adapt across cells, quantify uncertainty,
+identify abnormal degradation early, and provide reliable long-term forecasts.
 \end{abstract}
 
-\begin{keyword}
+%% Keep these five in sync with highlights.tex, which is uploaded as the
+%% separate Highlights file at submission.
+\begin{highlights}
+\item Large-format LFP cells show a 13x cell-to-cell spread under identical conditions
+\item One-step SOH forecasting saturates: a linear model matches deep networks
+\item Cell identity explains more prediction-error variance than model choice
+\item Fingerprint-conditioned transfer plus fine-tuning improve new-cell SOH prediction
+\item Calibrated uncertainty, early screening and RUL forecasting aid deployment
+\end{highlights}
+
+\begin{keywords}
 battery state of health \sep remaining useful life \sep LiFePO$_4$ \sep
 transfer learning \sep cell-to-cell variability \sep uncertainty quantification \sep
 large-format cells
-\end{keyword}
+\end{keywords}
 
-\end{frontmatter}
+\maketitle
 
 \section{Introduction}\label{sec:intro}
 \input{introduction}
@@ -128,15 +204,6 @@ float32 precision and complete seeding of the Python, NumPy, and TensorFlow rand
 number generators, so each reported value reproduces bit-for-bit on the same
 hardware and software stack.
 
-% CRediT roles below are a draft for the authors to confirm before submission.
-\section*{CRediT authorship contribution statement}
-\textbf{Karthickumar Ponnambalam:} Conceptualization, Methodology, Software,
-Formal analysis, Investigation, Data curation, Visualization, Writing - original
-draft. \textbf{Sivaneasan Balakrishnan:} Resources, Data curation, Supervision,
-Writing - review and editing. \textbf{Anurag Sharma:} Supervision, Validation,
-Writing - review and editing. \textbf{Sze Sing Lee:} Supervision, Writing -
-review and editing.
-
 \section*{Declaration of competing interest}
 The authors declare that they have no known competing financial interests or
 personal relationships that could have appeared to influence the work reported
@@ -153,7 +220,14 @@ language editing. After using this tool, the authors reviewed and edited the
 content as needed and take full responsibility for the content of the
 publication.
 
-\bibliographystyle{elsarticle-num}
+%% Typesets the CRediT roles declared per author above.
+%% The roles are a draft for the authors to confirm before submission.
+\printcredits
+
+%% Energy and AI prints numbered citations with a num-names reference list.
+%% elsarticle-num-names is that style; it ships with the elsarticle bundle,
+%% not the CAS bundle, which only carries the author-year cas-model2-names.
+\bibliographystyle{elsarticle-num-names}
 \bibliography{references}
 
 \end{document}
