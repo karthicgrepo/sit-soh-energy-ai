@@ -15,7 +15,7 @@ accelerate degradation within the test duration.
 G3 cells (elevated temperature and 2C rate) show more diverse outcomes
 (0.461 to 1.075), including two cells with moderate to severe degradation.
 
-\begin{figure*}[htbp]
+\begin{figure*}[pos=tbp]
 \centering
 \includegraphics[width=\textwidth]{fig2_sit_overview}
 \caption{SOH trajectories for all 20 SIT cells.}
@@ -26,11 +26,11 @@ Table~\ref{tab:sit_baseline} reports DE-LSTM RMSE across all 20 SIT cells
 at 30\%, 50\%, and 70\% training splits; values are mean\,$\pm$\,std across the
 cells in each group, averaged over two evaluation seeds.
 
-\begin{table}[htbp]
+\begin{table*}[pos=tbp]
 \caption{DE-LSTM baseline RMSE by operating-condition group.}
 \label{tab:sit_baseline}
-\footnotesize
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}llrrr}
+\small
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llrrr}
 \toprule
 Group & Condition & RMSE (30\%) & RMSE (50\%) & RMSE (70\%) \\
 \midrule
@@ -43,7 +43,7 @@ All$^\dagger$ & {}                   & $0.025\pm0.023$ & $0.011\pm0.006$ & $0.01
 \multicolumn{5}{@{}l}{\footnotesize $^\dagger$ Excluding the recovery-artefact cell 003-5, whose 30\%-split}\\
 \multicolumn{5}{@{}l}{\footnotesize RMSE (0.234) is dominated by its SOH$>$1 segment (50/70\%: 0.017/0.014).}
 \end{tabular*}
-\end{table}
+\end{table*}
 
 Two patterns are immediately evident.
 First, within G1, per-cell RMSE still varies ${\sim}5\times$ (0.004 to 0.021
@@ -56,7 +56,7 @@ Second, once half a cell's history is available the per-cell errors are small
 that the one-step task itself is close to its floor, which the next comparison
 makes explicit.
 
-\begin{figure}[htbp]
+\begin{figure}[pos=htbp]
 \centering
 \includegraphics[width=\columnwidth]{fig3_sit_baseline}
 \caption{DE-LSTM per-cell RMSE at the 50\% split for all 20 SIT cells, sorted by
@@ -77,11 +77,11 @@ convolutions) and a Transformer encoder, each under a fixed configuration
 matched to the Simple-LSTM protocol.
 Table~\ref{tab:method_comparison} reports the mean RMSE over the test cells at each split.
 
-\begin{table}[htbp]
+\begin{table*}[pos=tbp]
 \caption{Single-cell predictor and trivial-baseline RMSE on the SIT test cells.}
 \label{tab:method_comparison}
-\footnotesize
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrr}
+\small
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrr}
 \toprule
 Method & RMSE (30\%) & RMSE (50\%) & RMSE (70\%) \\
 \midrule
@@ -102,9 +102,9 @@ Linear AR & $\mathbf{0.0068}$ & $\mathbf{0.0052}$ & $\mathbf{0.0052}$ \\
 Cubic curve fit & $1.499$ & $0.158$ & $0.088$ \\
 \bottomrule
 \end{tabular*}
-\end{table}
+\end{table*}
 
-\begin{figure}[htbp]
+\begin{figure}[pos=htbp]
 \centering
 \includegraphics[width=\columnwidth]{fig_method_comparison}
 \caption{Mean RMSE of six single-cell predictors and the proposed hybrid across the 30\%, 50\% and 70\% splits.}
@@ -178,7 +178,7 @@ reveal where it sits in the manufacturing distribution.
 
 \subsubsection{Cross-Cell LOOCV: A Two-Sided Failure Mode}
 
-\begin{figure*}[htbp]
+\begin{figure*}[pos=tbp]
 \centering
 \includegraphics[width=\textwidth]{fig4_loocv}
 \caption{G1 LOOCV: same-cell vs cross-cell RMSE at the 50\% split.}
@@ -195,7 +195,7 @@ the other nine cells and tested on the held-out cell) achieves a lower
 held-out cell; 0.049 vs.\ 0.060 at 50\% split), but this average conceals
 opposing failure modes:
 
-\begin{table}[htbp]
+\begin{table}[pos=htbp]
 \caption{Same-cell vs cross-cell RMSE for the 10 G1 cells (50\% split).}
 \label{tab:loocv}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrrr}
@@ -253,7 +253,7 @@ Table~\ref{tab:fingerprint} reports Pearson correlations between early-life
 statistics and final SOH across 47 MIT LFP cells (SOH$_\text{end}<1$,
 excluding 2 capacity-recovery artefacts).
 
-\begin{table}[htbp]
+\begin{table}[pos=htbp]
 \caption{Correlation of early-life features with final SOH.}
 \label{tab:fingerprint}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}llrrl}
@@ -279,7 +279,7 @@ prediction; this motivates the CNN fingerprint encoder, which learns a
 nonlinear representation from the full 30-cycle trajectory rather than
 hand-crafted summary statistics.
 
-\begin{figure*}[htbp]
+\begin{figure*}[pos=tbp]
 \centering
 \includegraphics[width=\textwidth]{fig10_fingerprint}
 \caption{Early-life predictors of final SOH: 50-cycle slope and 10-cycle maximum capacity drop.}
@@ -289,7 +289,7 @@ hand-crafted summary statistics.
 \subsection{Cross-Condition Transfer Is Dominated by Training-Run
 Variance}\label{sec:brittleness}
 
-\begin{table}[htbp]
+\begin{table}[pos=htbp]
 \caption{Cross-condition transfer RMSE between operating-condition groups.}
 \label{tab:brittleness}
 \resizebox{\columnwidth}{!}{%
@@ -346,7 +346,7 @@ Section~\ref{sec:variability} ($0.049$), which trains on the complete
 trajectories of the other nine cells and so sees their degradation tails; the
 two baselines answer different questions and should not be compared directly.
 
-\begin{figure}[htbp]
+\begin{figure}[pos=htbp]
 \centering
 \includegraphics[width=\columnwidth]{fig5_brittleness}
 \caption{Mean RMSE for each cross-condition transfer under the deterministic pipeline.}

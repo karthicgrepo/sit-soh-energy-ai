@@ -10,7 +10,7 @@ hybrid's accuracy and calibration across the 17 test cells (the three calibratio
 
 \subsubsection{Ablation Study}
 
-\begin{table}[htbp]
+\begin{table}[pos=htbp]
 \caption{Ablation study: contribution of each hybrid component (50\% split).}
 \label{tab:ablation}
 \resizebox{\columnwidth}{!}{%
@@ -28,7 +28,7 @@ Full hybrid (proposed)   & $\mathbf{0.016 \pm 0.014}$ & \textbf{51.1\%}$^\ddag$ 
 }
 \end{table}
 
-\begin{figure}[htbp]
+\begin{figure}[pos=htbp]
 \centering
 \includegraphics[width=\columnwidth]{fig6_ablation}
 \caption{Ablation study: mean RMSE per configuration (50\% split).}
@@ -80,7 +80,7 @@ the LSTM in the pretrained regime, rather than identifying the individual cell. 
 report this openly and, throughout, describe the mechanism as population conditioning
 rather than cell-specific fingerprinting.
 
-\begin{table}[htbp]
+\begin{table}[pos=htbp]
 \centering
 \caption{Fingerprint control study (50\% split, 17 test cells).}\label{tab:fp}
 \small
@@ -99,7 +99,7 @@ Zero                     & 0.0149 & 81.5\% \\
 
 \subsubsection{Hybrid Accuracy Across Operating Conditions}
 
-\begin{table}[htbp]
+\begin{table}[pos=htbp]
 \caption{Full hybrid results by operating-condition group (50\% split).}
 \label{tab:hybrid_main}
 \resizebox{\columnwidth}{!}{%
@@ -176,14 +176,14 @@ hybrid RMSE of 0.015 (scratch 0.039), a 63.1\% mean per-cell improvement versus
 65.1\% with 003-5 included, so the artefact slightly inflates but does not
 drive the result.
 
-\begin{figure*}[htbp]
+\begin{figure*}[pos=tbp]
 \centering
 \includegraphics[width=\textwidth]{fig7_hybrid}
 \caption{Hybrid vs.\ scratch LSTM on the SIT cells (50\% split).}
 \label{fig:hybrid_percell}
 \end{figure*}
 
-\begin{figure*}[htbp]
+\begin{figure*}[pos=tbp]
 \centering
 \includegraphics[width=\textwidth]{fig11_prediction}
 \caption{Hybrid predicted versus actual SOH with 95\% MC-Dropout uncertainty bands (50\% split).}
@@ -221,7 +221,7 @@ produces uncertainty intervals at all; recalibrated this way they are conservati
 but honest for BMS threshold logic, while flagged outliers still require
 special handling.
 
-\begin{figure}[htbp]
+\begin{figure}[pos=htbp]
 \centering
 \includegraphics[width=\columnwidth]{fig13_calibration}
 \caption{Uncertainty calibration on the 17 test cells.}
@@ -230,7 +230,7 @@ special handling.
 
 \subsubsection{Uncertainty Calibration: The Chemistry-Alignment Effect}
 
-\begin{figure*}[htbp]
+\begin{figure*}[pos=tbp]
 \centering
 \includegraphics[width=\textwidth]{fig8_coverage}
 \caption{MC-Dropout 95\% PI empirical coverage by dataset and group.}
@@ -272,7 +272,7 @@ reference tests every tenth cycle, offering a third independent LFP
 pretraining source distinct from both MIT and SIT in cell format, capacity,
 and cycling protocol.
 
-\begin{table*}[htbp]
+\begin{table*}[pos=tbp]
 \centering
 \caption{Cross-dataset transfer matrix: RMSE improvement over scratch LSTM.}
 \label{tab:cross_dataset}
@@ -297,7 +297,7 @@ F & NASA (LCO) & MIT (LFP) & cross & $+$32.2\% & $+$59.0\% & $+$58.9\% \\
 \end{tabular*}
 \end{table*}
 
-\begin{figure*}[htbp]
+\begin{figure*}[pos=tbp]
 \centering
 \includegraphics[width=\textwidth]{fig9_cross_dataset}
 \caption{Cross-dataset RMSE improvement over scratch LSTM across all ten
@@ -370,7 +370,7 @@ reduction from only the first 30 cycles, which is the regime that matters for a 
 commissioned cell with no usable history and where a retrospective split would not
 apply.
 
-\begin{table}[htbp]
+\begin{table}[pos=htbp]
 \centering
 \caption{Fixed early-life budget evaluation.}\label{tab:budget}
 \footnotesize

@@ -37,10 +37,32 @@
 \setcounter{secnumdepth}{3}
 \graphicspath{{figures/}}
 
+%% Float placement.
+%%
+%% The CAS template ships two lines here, \def\floatpagepagefraction{1} and
+%% \def\textpagefraction{.001}. Both are dead: the real LaTeX parameters are
+%% \floatpagefraction and \textfraction, so those \defs just create unused
+%% macros. They are removed.
+%%
+%% This paper has nine full-width figure* floats. In a two-column document a
+%% figure* can only be placed at the top of a page (or the bottom, via the
+%% stfloats package that cas-dc already loads), never "here". With LaTeX's
+%% stingy defaults they could not be placed, queued up, and were all flushed
+%% after the bibliography. Relaxing the fractions and raising the per-page
+%% float counts lets them settle near the text that cites them.
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{5}
+\setcounter{dbltopnumber}{3}
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.75}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.70}
+\renewcommand{\dbltopfraction}{0.92}
+\renewcommand{\dblfloatpagefraction}{0.65}
+
 \begin{document}
 \let\WriteBookmarks\relax
-\def\floatpagepagefraction{1}
-\def\textpagefraction{.001}
 
 \shorttitle{Deployment-Oriented Health Prediction for Large-Format LiFePO$_4$ Cells}
 \shortauthors{K. Ponnambalam et~al.}
@@ -131,6 +153,13 @@ challenge in large-format battery prognostics is not further reducing already-sm
 one-step errors, but developing models that adapt across cells, quantify uncertainty,
 identify abnormal degradation early, and provide reliable long-term forecasts.
 \end{abstract}
+
+%% Graphical abstract. CAS sets this beside the highlights on page one, which
+%% is the side-by-side HIGHLIGHTS / GRAPHICAL ABSTRACT band the journal prints.
+%% Elsevier also wants this uploaded as its own image file at submission.
+\begin{graphicalabstract}
+\includegraphics[width=\linewidth]{fig1_methodology.pdf}
+\end{graphicalabstract}
 
 %% Keep these five in sync with highlights.tex, which is uploaded as the
 %% separate Highlights file at submission.
