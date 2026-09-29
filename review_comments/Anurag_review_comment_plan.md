@@ -1,5 +1,40 @@
 # Review response plan: Dr Anurag Sharma, 21 September 2026
 
+> ## STATUS AS OF 2026-09-29 (work done on the GPU machine, Linux RTX 2080 Ti)
+>
+> The plan below is the ORIGINAL pre-work triage. Most of it is now DONE. Read this
+> box first, then `review_response.md` (point-by-point with final numbers).
+>
+> **New home of the paper:** `latex/energy_ai_paper/` (migrated to **elsarticle**, Energy and AI),
+> pushed to `github.com/karthicgrepo/sit-soh-energy-ai` (branch `main`), compiled `main.pdf` = 66 pp.
+> The old `latex/SIT_SOH_Paper/` (Wiley) is **FROZEN** as the reviewed version, do not edit it.
+> **Code:** all fixes + experiment scripts + regenerated result CSVs are on branch
+> `energy-ai-revision` of `battery-soh-prediction` (pushed).
+>
+> **DONE (22/25):** C1 (saturation-forward title/abstract/framing), C2 (cell-to-cell), C3 (softened),
+> C4 (matched-exposure 7.6x cycle / 13.7x throughput), C5 (persistence 0.0128 beats hybrid, drift),
+> C6 (fingerprint-conditioned transfer), C7 (intermittent-SOH sweep 0.015/0.055/0.114/0.202 at k=1/5/10/25),
+> C8 (fixed budgets 30/50/100/200: +37/34/13/37%), C9 (dropped "irreducible"), **C10 (cell-disjoint
+> pretraining fix + FULL re-run, both pretraining paths)**, C11 (PI not CI), C12+C13 (grouped/cross-conformal,
+> selection cells excluded; raw MC 82%, grouped conservative to 100%), C14+C15 (fingerprint INERT =
+> population prior, not cell-id; controls all ~0.0149), C16 (chemistry-alignment effect not principle),
+> C18 (RUL censoring 12 EOL / 8 censored), C20 (full decoder spec), C21 (consolidated dataset table),
+> C22 (Scratch-LSTM naming / NASA=LCO / PI / standardised terms), C23+C24 (already-done + pushed back).
+>
+> **KEY NUMBER CHANGES from the C10 leak fix (report before/after):** fingerprint-transfer 38.2% -> 23.3%,
+> full hybrid 53.5% -> 51.1%, checkpoint-selection robustness 95.5% -> 100%, coverage now honest grouped
+> conformal (old leaked 93.9% removed). Framing decision (user, 2026-09-28): capability-based win only,
+> NOT one-step, aligned with C24. RUL numbers unaffected.
+>
+> **OPEN (3, laptop-doable, NO GPU / NO new data needed):**
+> - **C17** literature update + cite Zhang 2026 (`zhang2026`, Energy and AI 25:100771) + add HUST/SNL bib
+>   entries (verify real citations, do NOT fabricate).
+> - **C19** risk-vs-coverage RUL plot (from `results/review/t53_benchmark_table.csv`).
+> - **C25 / finalize:** abstract -> single paragraph <=250 words; cut manuscript 15-20%; decide TCN/Transformer
+>   (matched search or drop).
+>
+> All experiment outputs: `battery-soh-prediction/results/{sit_paper,sensitivity,hybrid,review}/`.
+
 **Manuscript:** "Deployment-Oriented Health Prediction for Large-Format LiFePO4 Cells: Manufacturing Variability, Transfer, and Calibrated Uncertainty"
 **Source:** `latex/sit_soh_paper/` (Wiley NJD template, 26 pages, approx. 16,100 words)
 **Review email:** `review_comments/RE Latest Battery dataset paper Scientific Data.msg` (subject line is a stale reply chain; the content is entirely about the SOH prediction paper, not the Scientific Data dataset paper)
