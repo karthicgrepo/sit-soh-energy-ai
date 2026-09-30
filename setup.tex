@@ -107,8 +107,8 @@ constant-current discharge; because its chemistry differs from the LFP target
 cells, it serves as the cross-chemistry generalisation test. The LISHEN
 dataset~\cite{lishen_zenodo} provides 3 large-format 40\,Ah LFP prismatic cells
 cycled at 2\,C over a 20\% depth-of-discharge window, used as a third,
-independent LFP source in the cross-dataset transfer matrix. The HUST and Sandia
-(SNL) collections provide 77 and 29 LFP 18650 cells respectively; together with
+independent LFP source in the cross-dataset transfer matrix. The HUST~\cite{ma2022real} and Sandia
+(SNL)~\cite{preger2020degradation} collections provide 77 and 29 LFP 18650 cells respectively; together with
 the 49 MIT cells they form the 155-cell LFP foundation corpus that pretrains the
 RUL decoder (Section~\ref{sec:rul_foundation}). Table~\ref{tab:datasets}
 consolidates the chemistry, format, capacity, cell count, operating conditions,
@@ -123,12 +123,12 @@ and role of every dataset used in this study.
 \toprule
 Dataset & Chemistry & Format & Cap.\ (Ah) & Cells & Conditions & Role in this study \\
 \midrule
-SIT (primary) & LFP & Prismatic & 50  & 20 & 25 to 40\,\textcelsius, 1 to 2\,C     & Target cells: testing and checkpoint selection \\
-MIT/Severson  & LFP & 18650     & 1.1 & 40 & Fast charge, multi-protocol           & Base-hybrid pretraining (training) \\
-NASA PCoE     & LCO & 18650     & 2   & 26 & Varied temperature, constant current  & Cross-chemistry test (testing) \\
-LISHEN        & LFP & Prismatic & 40  & 3  & 2\,C, 20\% depth of discharge         & Third LFP source, cross-dataset transfer \\
-HUST          & LFP & 18650     & 1.1 & 77 & Multi-rate discharge                  & RUL foundation corpus (training) \\
-SNL (Sandia)  & LFP & 18650     & 1.1 & 29 & Varied temperature, rate, DOD         & RUL foundation corpus (training) \\
+SIT (primary)~\cite{ponnambalam2026sitdata} & LFP & Prismatic & 50  & 20 & 25 to 40\,\textcelsius, 1 to 2\,C     & Target cells: testing and checkpoint selection \\
+MIT/Severson~\cite{severson2019data}  & LFP & 18650     & 1.1 & 40 & Fast charge, multi-protocol           & Base-hybrid pretraining (training) \\
+NASA PCoE~\cite{saha2007battery}     & LCO & 18650     & 2   & 26 & Varied temperature, constant current  & Cross-chemistry test (testing) \\
+LISHEN~\cite{lishen_zenodo}        & LFP & Prismatic & 40  & 3  & 2\,C, 20\% depth of discharge         & Third LFP source, cross-dataset transfer \\
+HUST~\cite{ma2022real}          & LFP & 18650     & 1.1 & 77 & Multi-rate discharge                  & RUL foundation corpus (training) \\
+SNL (Sandia)~\cite{preger2020degradation}  & LFP & 18650     & 1.1 & 29 & Varied temperature, rate, DOD         & RUL foundation corpus (training) \\
 \bottomrule
 \end{tabular}%
 }

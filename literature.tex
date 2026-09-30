@@ -90,6 +90,32 @@ is an open question addressed in this work through explicit comparison
 of chemistry matched (LFP$\rightarrow$LFP) and chemistry mismatched
 (LFP$\rightarrow$LCO) transfer.
 
+\subsubsection{Cross-Dataset and Foundation-Model Transfer}
+
+A recent line of work asks the same question at corpus scale, pretraining a
+single model over several public collections and then adapting it to a target.
+Zhang et al.~\cite{zhang2026crossdataset} are closest to our remaining-useful-life
+setting: they forecast capacity trajectories with a time-series foundation model
+across four public benchmarks, observing the first 30\% of life and predicting the
+remainder, under a protocol that separates zero-shot inference from
+prefix-adapted and source-adapted variants. Their central result is that source
+adaptation helps most when source and target come from the same collection, while
+cross-dataset transfer degrades accuracy under distribution shift.
+
+That finding is independent corroboration of the domain-alignment effect we
+report in Section~\ref{sec:results}, reached from a different direction: they vary
+the dataset at fixed chemistry, whereas we vary the chemistry and hold the
+degradation mode fixed. We adopt their vocabulary for the distinction that matters
+here, describing our encoder as fingerprint-conditioned, that is, prefix-adapted
+without target-cell fine tuning, rather than as zero-shot in the looser sense the
+term often carries.
+
+Our contribution is differential rather than unprecedented. This body of work is
+built almost entirely on small cylindrical cells of 1 to 3\,Ah. What we add is a
+large-format setting, 50\,Ah prismatic cells with a per-cell thermal record, and
+an explicit test of whether calibrated uncertainty, not just point accuracy,
+survives the transfer.
+
 \subsection{Cell-to-Cell Variability}
 
 Cell-to-cell variability arising from manufacturing tolerances is

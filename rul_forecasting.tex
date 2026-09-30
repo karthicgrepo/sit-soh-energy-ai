@@ -81,7 +81,17 @@ calibrated intervals. The recursive DE-LSTM attains a lower error, 41 and 12 cyc
 the easy 38\% to 86\% of cells that it chooses to forecast. This is the coverage against risk
 trade-off familiar from selective prediction~\cite{reject_option}. A method that withholds a
 forecast on the defective cells is of limited use for a manufacturing screen, where those cells
-are precisely the ones of interest. The direct decoder also reduces the error of the
+are precisely the ones of interest.
+
+Figure~\ref{fig:risk_coverage} plots the two quantities against each other so that neither can
+be read in isolation. Accuracy alone would rank the recursive lineage first at the 50\% anchor,
+where DE-LSTM and the autoregressive hybrid reach 12 and 11 cycles against our 49. Coverage
+alone would rank them last. Read together, the lineage occupies the low-error but
+incomplete-coverage region, and it reaches that position by declining exactly the cells a
+manufacturer needs a forecast for; our model is the only one at full coverage at both anchors.
+We state the comparison this way rather than claiming a lower error than every baseline, because
+on the cells they do forecast at the 50\% anchor the recursive methods are genuinely the more
+accurate. The direct decoder also reduces the error of the
 autoregressive hybrid from 98 to 68 cycles at the earliest anchor.
 
 \begin{table}[pos=t]
@@ -112,4 +122,10 @@ Anchor & Method & Cov. & Med.\ err. & PI cov. \\
 \centering
 \includegraphics[width=0.9\textwidth]{figures/fig_rul_benchmark.png}
 \caption{Full-coverage probabilistic RUL and the pretraining ablation.}\label{fig:rul}
+\end{figure*}
+
+\begin{figure*}[pos=tbp]
+\centering
+\includegraphics[width=\textwidth]{fig_risk_coverage.pdf}
+\caption{Risk versus coverage for RUL forecasting.}\label{fig:risk_coverage}
 \end{figure*}
