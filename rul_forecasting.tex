@@ -21,6 +21,16 @@ model nonetheless returns a forecast for every censored cell, in each case placi
 0.80 crossing 190 to 324 cycles beyond the forecasting anchor, consistent with their shallow
 fade, and never inside the already-observed span.
 
+The same convention applies to every method in the comparison of
+Section~\ref{sec:rul_results}: a censored cell carries no ground-truth RUL, so it enters no
+error statistic for any of them, and the coverage column of Table~\ref{tab:rul} is computed
+over the 12 cells that reach EOL. What differs is what each method emits. The direct
+decoder returns a crossing for all eight censored cells, as above. The shortfall in the
+recursive lineage's coverage arises within the EOL set, on the catastrophic cells, rather
+than on the censored ones. We did not separately characterise how the recursive rollouts
+behave beyond the end of a censored cell's observed record, and we note that as a
+limitation rather than claiming a result we did not measure.
+
 \subsection{Direct trajectory decoding}\label{sec:rul_direct}
 We extend the hybrid with a direct multi-horizon decoder that predicts the whole remaining SOH
 trajectory in a single forward pass, which removes the iterative feedback and its error
