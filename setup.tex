@@ -190,12 +190,15 @@ cycle order: training windows are drawn from the first $p\%$ of the trajectory a
 evaluation windows from the remainder, so no held-out SOH value is ever used as a
 training target. The first evaluation window is seeded with the last $W$
 \emph{observed} training cycles as its input; this is inherent to one-step-ahead
-prediction and exposes no held-out target. For pretraining, the look-back windows
-of all corpus cells are pooled in cell order and the final 10\% of the pooled array
-is held out for early stopping. Because the pooled array is not shuffled before
-this split, the validation slice comprises whole cells except for the single cell
-straddling the boundary, which is consequently the only cell able to contribute
-(mutually overlapping) windows to both partitions. Finally, since a cell of length
+prediction and exposes no held-out target. For pretraining, the corpus cells are
+partitioned into training and validation folds \emph{by whole cell, before any
+windowing}, so no cell contributes windows to both partitions and the
+early-stopping signal is measured only on cells the model has not seen. An earlier
+version of this pipeline pooled the windows in cell order and held out the final
+10\% of the pooled array, which allowed the single cell straddling that boundary to
+contribute mutually overlapping windows to both sides. That split was corrected to
+the cell-disjoint form described here, and every result reported in this paper comes
+from the corrected pipeline. Finally, since a cell of length
 $T$ yields $T-W$ windows, cells with longer trajectories contribute proportionally
 more pretraining samples: the pooled corpus is sample-weighted by trajectory
 length rather than balanced per cell.
