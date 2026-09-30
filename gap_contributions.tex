@@ -6,10 +6,11 @@ study addresses them.
 Despite substantial progress in data-driven SOH prediction, three critical gaps remain unaddressed in the existing literature:
 
 \begin{enumerate}
-  \item \textbf{Manufacturing variability is not modelled.}
+  \item \textbf{Cell-to-cell variability is not modelled.}
         Published benchmarks typically use hand-picked cells with moderate,
         smooth degradation trajectories.
-        Cell-to-cell manufacturing variance, which can produce 10$\times$
+        Cell-to-cell variance, to which manufacturing tolerance is a likely
+        contributor, can produce 10$\times$
         differences in degradation rate under identical conditions, is
         systematically understudied.
         Most transfer and fine tuning methods adapt to a target cell either by
@@ -70,10 +71,10 @@ This paper makes the following key contributions:
         expose the saturation of the one-step protocol
         (Section~\ref{sec:baseline}).
 
-  \item \textbf{Manufacturing variability quantification}: Across ten nominally
+  \item \textbf{Cell-to-cell variability quantification}: Across ten nominally
         identical G1 cells, we show that although each cell's own degradation
         trajectory is highly predictable, the cells differ so much from one
-        another that this manufacturing spread, not the algorithm, sets the
+        another that this spread between cells, not the algorithm, sets the
         error floor.
         A variance decomposition across six predictors attributes 25\% to 58\%
         of error variance to the cell and only ${\sim}$15\% to the method,
